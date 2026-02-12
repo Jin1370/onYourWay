@@ -1,0 +1,28 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "../lib/generated/prisma"
+  engineType = "client" // enable Prisma ORM without Rust
+}
+
+datasource db {
+  provider = "sqlite" //"postgresql"
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  email      String?  @unique
+  password   String?
+  //phone      String?    @unique
+  //github_id  String?    @unique
+  avatar     String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  //tokens     SMSToken[]
+  //products   Product[]
+  //posts      Post[]
+  //comments   Comment[]
+  //likes      Like[]
+  //chat_rooms ChatRoom[]
+  //messages   Message[]
+}
