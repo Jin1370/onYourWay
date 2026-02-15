@@ -4,6 +4,7 @@
 @theme {
     /* --color-[이름]: [색상코드]; 형식으로 작성합니다. */
     --color-myblue: #0e5db8;
+    --color-mygray: #767676;
 }
 
 @utility primary-btn {

@@ -15,7 +15,6 @@ const checkEmailExists = async (email: string) => {
             id: true,
         },
     });
-    console.log(user);
     return Boolean(user);
 };
 
@@ -26,10 +25,7 @@ const formSchema = z.object({
         .toLowerCase()
         .min(1, "필수 입력 항목입니다.")
         .pipe(z.string().email("올바른 이메일 형식이 아닙니다."))
-        .refine(checkEmailExists, {
-            message: "이메일 또는 비밀번호가 일치하지 않습니다.",
-            path: ["password"],
-        }),
+        .refine(checkEmailExists, "이메일 또는 비밀번호가 일치하지 않습니다."),
     password: z
         .string()
         .trim()
