@@ -19,7 +19,7 @@ import { usePathname } from "next/navigation";
 export default function TabBar() {
     const pathname = usePathname();
     return (
-        <div className="fixed bottom-0 left-0 right-0 grid grid-cols-5 px-5 py-3 bg-indigo-50 *:text-neutral-500 *:mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-screen-sm grid grid-cols-5 px-5 py-3 bg-indigo-50 *:text-neutral-500 *:mx-auto">
             <Link href="/posts">
                 {pathname === "/posts" ? (
                     <SolidGlobeAsiaAustraliaIcon className="w-7 h-7 text-myblue" />
