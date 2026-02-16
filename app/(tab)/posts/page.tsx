@@ -4,6 +4,7 @@ import {
     ChatBubbleBottomCenterIcon,
     HandThumbUpIcon,
 } from "@heroicons/react/24/outline";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
 async function getPosts() {
@@ -28,7 +29,7 @@ async function getPosts() {
 export default async function Posts() {
     const posts = await getPosts();
     return (
-        <div className="flex flex-col p-5">
+        <div className="flex flex-col p-5 pb-20">
             {posts.map((post) => (
                 <Link
                     key={post.id}
@@ -62,6 +63,12 @@ export default async function Posts() {
                     </div>
                 </Link>
             ))}
+            <Link
+                href="/posts/create"
+                className="fixed bottom-20 right-10 size-15 text-myblue hover:text-blue-200"
+            >
+                <PlusCircleIcon />
+            </Link>
         </div>
     );
 }
