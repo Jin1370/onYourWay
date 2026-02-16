@@ -1,0 +1,26 @@
+import db from "@/lib/db";
+import { notFound } from "next/navigation";
+import EditForm from "./edit-form";
+
+export default async function EditPost({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id: strId } = await params;
+    const postId = Number(strId);
+    if (isNaN(postId)) return notFound();
+
+    const post = await db.posts.findUnique({
+        where: {
+            id: postId,
+        },
+        select: {
+            id: true,
+            title: true,
+            content: true,
+        },
+    });
+    if (!post) return notFound();
+    return <EditForm post={post} />;
+}

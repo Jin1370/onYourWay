@@ -65,7 +65,7 @@ export default async function Posts() {
             ))}
             <Link
                 href="/posts/create"
-                className="fixed bottom-20 right-10 size-15 text-myblue hover:text-blue-200"
+                className="fixed bottom-20 right-10 size-15 text-myblue hover:text-myblue/80 transition-colors"
             >
                 <PlusCircleIcon />
             </Link>

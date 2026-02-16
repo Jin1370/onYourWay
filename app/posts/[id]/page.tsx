@@ -6,10 +6,12 @@ import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createComment, deleteComment } from "./action";
+import Link from "next/link";
+import DeleteBtn from "@/components/delete-button";
 
-export async function getPost(postId: number) {
+async function getPost(postId: number) {
     const post = await db.posts.update({
         where: {
             id: postId,
@@ -86,6 +88,16 @@ export default async function Post({
     const session = await getSession();
     const isLiked = await getIsLiked(postId, session.id!);
 
+    async function deletePost() {
+        "use server";
+        await db.posts.delete({
+            where: {
+                id: post.id,
+            },
+        });
+        redirect("/posts");
+    }
+
     return (
         <div className="p-5 text-neutral-700 pb-30">
             <div className="flex items-center gap-2 mb-2">
@@ -114,11 +126,24 @@ export default async function Post({
                     <EyeIcon className="size-5" />
                     <span>조회 {post.views}</span>
                 </div>
-                <LikeButton
-                    isLiked={isLiked}
-                    likeCount={post._count.likes}
-                    postId={postId}
-                />
+                <div className="flex gap-2">
+                    <LikeButton
+                        isLiked={isLiked}
+                        likeCount={post._count.likes}
+                        postId={postId}
+                    />
+                    {post.userId === session.id ? (
+                        <div className="flex gap-2">
+                            <Link
+                                href={`/posts/${post.id}/edit`}
+                                className="text-sm border rounded-full p-2 w-14 bg-myblue text-white border-myblue hover:bg-myblue/80 transition-colors text-center"
+                            >
+                                수정
+                            </Link>
+                            <DeleteBtn onDelete={deletePost} />
+                        </div>
+                    ) : null}
+                </div>
             </div>
             <div className="flex flex-col py-7">
                 {post._count.comments !== 0 ? (
