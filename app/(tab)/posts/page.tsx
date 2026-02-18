@@ -39,9 +39,7 @@ export default async function Posts() {
                     <h2 className="text-neutral-700 font-semibold text-lg">
                         {post.title}
                     </h2>
-                    <p className="line-clamp-2 leading-relaxed">
-                        {post.content}
-                    </p>
+                    <p className="leading-relaxed">{post.content}</p>
                     <div className="flex items-center justify-between text-sm">
                         <div className="flex gap-4 items-center">
                             <span>
@@ -53,7 +51,7 @@ export default async function Posts() {
                         <div className="flex gap-4 items-center *:flex *:gap-1 *:items-center text-myblue">
                             <span>
                                 <HandThumbUpIcon className="size-4" />
-                                {post._count.comments}
+                                {post._count.likes}
                             </span>
                             <span>
                                 <ChatBubbleBottomCenterIcon className="size-4" />
