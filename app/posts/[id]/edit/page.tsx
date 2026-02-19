@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import { notFound } from "next/navigation";
-import EditForm from "./edit-form";
+import EditPostForm from "./edit-post-form";
 
 export default async function EditPost({
     params,
@@ -22,5 +22,5 @@ export default async function EditPost({
         },
     });
     if (!post) return notFound();
-    return <EditForm post={post} />;
+    return <EditPostForm post={post} />;
 }

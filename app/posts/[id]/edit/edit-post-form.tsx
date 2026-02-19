@@ -6,7 +6,7 @@ import { useActionState } from "react";
 import InputContent from "@/components/input-content";
 import { updatePost } from "./action";
 
-export default function EditForm({
+export default function EditPostForm({
     post,
 }: {
     post: { id: number; title: string; content: string };
@@ -32,6 +32,7 @@ export default function EditForm({
                     name="content"
                     defaultValue={post.content}
                     errors={state?.fieldErrors.content}
+                    rowsNum={10}
                 />
                 <Button text="등록" />
             </form>

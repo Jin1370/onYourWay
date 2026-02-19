@@ -3,11 +3,13 @@ import { TextareaHTMLAttributes } from "react";
 interface InputContentProps {
     name: string;
     errors?: string[];
+    rowsNum: number;
 }
 
 export default function InputContent({
     errors = [],
     name,
+    rowsNum,
     ...rest
 }: InputContentProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
     return (
@@ -15,7 +17,7 @@ export default function InputContent({
             <textarea
                 className="bg-transparent rounded-md w-full ring-1 ring-neutral-200 p-3
                 focus:outline-none transition focus:ring-myblue placeholder:text-neutral-400"
-                rows={10}
+                rows={rowsNum}
                 name={name}
                 {...rest}
             />

@@ -6,7 +6,7 @@ import { useActionState } from "react";
 import { createPost } from "./action";
 import InputContent from "@/components/input-content";
 
-export default function CreatePage() {
+export default function CreatePost() {
     const [state, trigger] = useActionState(createPost, null);
     return (
         <div className="flex flex-col text-base min-h-screen py-20 px-8 gap-4">
@@ -23,6 +23,7 @@ export default function CreatePage() {
                     required
                     name="content"
                     errors={state?.fieldErrors.content}
+                    rowsNum={10}
                 />
                 <Button text="등록" />
             </form>
