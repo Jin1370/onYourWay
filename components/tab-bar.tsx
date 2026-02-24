@@ -41,8 +41,8 @@ export default function TabBar() {
                     <OutlineShoppingBagIcon className="w-7 h-7" />
                 )}
             </Link>
-            <Link href="/chat">
-                {pathname === "/chat" ? (
+            <Link href="/chats">
+                {pathname === "/chats" ? (
                     <SolidChatIcon className="w-7 h-7 text-myblue" />
                 ) : (
                     <OutlineChatIcon className="w-7 h-7" />

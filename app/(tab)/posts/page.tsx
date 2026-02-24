@@ -39,7 +39,9 @@ export default async function Posts() {
                     <h2 className="text-neutral-700 font-semibold text-lg">
                         {post.title}
                     </h2>
-                    <p className="leading-relaxed">{post.content}</p>
+                    <p className="line-clamp-2 leading-relaxed">
+                        {post.content}
+                    </p>
                     <div className="flex items-center justify-between text-sm">
                         <div className="flex gap-4 items-center">
                             <span>

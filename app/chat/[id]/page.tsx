@@ -10,7 +10,7 @@ async function getChatRoom(chatRoomId: string) {
         },
         include: {
             users: {
-                select: { id: true },
+                select: { id: true, username: true, avatar: true },
             },
         },
     });
@@ -80,6 +80,7 @@ export default async function Chat({
     return (
         <ChatMessagesList
             chatRoomId={id}
+            participants={chatRoom.users}
             userId={session.id!}
             username={user.username}
             avatar={user.avatar!}

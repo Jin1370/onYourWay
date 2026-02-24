@@ -11,8 +11,9 @@ import { saveMessage } from "./action";
 const SUPABASE_URL = "https://xvhlzzgnlvjssyftujvh.supabase.co";
 const SUPABASE_PUBLIC_KEY = "sb_publishable_J-MWCPiI_DmRYAchyzYo8Q_5xxPYQP7";
 
-interface CheckMessageListProps {
+interface ChatMessageListProps {
     chatRoomId: string;
+    participants: { id: number; username: string; avatar: string | null }[]; //객체들의 배열
     userId: number;
     username: string;
     avatar: string;
@@ -20,11 +21,12 @@ interface CheckMessageListProps {
 }
 export default function ChatMessagesList({
     chatRoomId,
+    participants,
     userId,
     username,
     avatar,
     initialMessages,
-}: CheckMessageListProps) {
+}: ChatMessageListProps) {
     const [messages, setMessages] = useState(initialMessages);
     const [message, setMessage] = useState("");
 
@@ -102,73 +104,106 @@ export default function ChatMessagesList({
         scrollToBottom();
     }, [messages]);
 
+    //나를 제외한 첫번째 대화 상대 찾기
+    const firstOpponent = participants.find((user) => user.id !== userId);
+    const participantsNum = participants.length - 1;
+
     return (
-        <div
-            className="p-5 flex flex-col min-h-screen justify-end"
-            //justify-end:자식을 밑에서부터 배치
-        >
-            {messages.map((message, idx) => {
-                const nextMessage = messages[idx + 1];
-                const currentTime = formatTime(message.created_at.toString());
-                const nextTime = nextMessage
-                    ? formatTime(nextMessage.created_at.toString())
-                    : null;
-                const showTime =
-                    !nextMessage ||
-                    currentTime !== nextTime ||
-                    message.userId !== nextMessage.userId;
-                const showAvatar =
-                    message.userId !== userId &&
-                    (idx === 0 || messages[idx - 1].userId !== message.userId);
-                return (
-                    <div
-                        key={message.id}
-                        className={`flex gap-2 items-start ${message.userId === userId ? "justify-end" : ""}`}
-                        // items-start:아바타와 메시지 박스의 윗변을 맞춤
-                        // justify-end:내 메시지면 오른쪽으로 밀어버림
-                    >
-                        {showAvatar ? (
-                            <Image
-                                src={message.user.avatar!}
-                                alt={message.user.username}
-                                width={50}
-                                height={50}
-                                className="size-8 rounded-full"
-                            />
-                        ) : (
-                            <div className="size-8" />
-                        )}
+        <div className="flex flex-col h-dvh">
+            <div className="bg-white z-10 p-3 flex items-center gap-3">
+                {firstOpponent ? (
+                    <>
+                        <Image
+                            src={firstOpponent.avatar || "/default-avatar.png"}
+                            alt={firstOpponent.username}
+                            width={50}
+                            height={50}
+                            className="size-9 rounded-full"
+                        />
+                        <span className="font-semibold text-lg">
+                            {firstOpponent.username}
+                            {participantsNum > 1
+                                ? ` 외 ${participantsNum}명`
+                                : null}
+                        </span>
+                    </>
+                ) : (
+                    <span className="font-semibold text-lg">
+                        대화 상대 없음
+                    </span>
+                )}
+            </div>
+            <div className="flex flex-col flex-1 overflow-y-auto gap-1 p-5">
+                {/* 메시지가 몇 개 없을 때, 아래에 붙게 하기 위함 */}
+                <div className="flex-1" />{" "}
+                {messages.map((message, idx) => {
+                    const nextMessage = messages[idx + 1];
+                    const currentTime = formatTime(
+                        message.created_at.toString(),
+                    );
+                    const nextTime = nextMessage
+                        ? formatTime(nextMessage.created_at.toString())
+                        : null;
+                    const showTime =
+                        !nextMessage ||
+                        currentTime !== nextTime ||
+                        message.userId !== nextMessage.userId;
+                    const showAvatar =
+                        message.userId !== userId &&
+                        (idx === 0 ||
+                            messages[idx - 1].userId !== message.userId);
+                    return (
                         <div
-                            className={`flex gap-1 items-end ${message.userId === userId ? "flex-row-reverse" : ""} ${idx !== messages.length - 1 && messages[idx + 1].userId !== message.userId ? "mb-8" : "mb-1"}`}
+                            key={message.id}
+                            className={`flex gap-2 items-start ${message.userId === userId ? "justify-end" : ""}`}
+                            // items-start:아바타와 메시지 박스의 윗변을 맞춤
+                            // justify-end:내 메시지면 오른쪽으로 밀어버림
                         >
-                            <span
-                                className={`${message.userId === userId ? "bg-neutral-200" : "bg-myblue text-white"} py-1.5 px-3 rounded-md`}
-                            >
-                                {message.content}
-                            </span>
-                            {showTime && (
-                                <span className="text-xs text-mygray">
-                                    {currentTime}
-                                </span>
+                            {showAvatar ? (
+                                <Image
+                                    src={message.user.avatar!}
+                                    alt={message.user.username}
+                                    width={50}
+                                    height={50}
+                                    className="size-8 rounded-full"
+                                />
+                            ) : (
+                                <div className="size-8" />
                             )}
+                            <div
+                                className={`flex gap-1 items-end max-w-[80%] ${message.userId === userId ? "flex-row-reverse" : ""} ${idx !== messages.length - 1 && messages[idx + 1].userId !== message.userId ? "mb-8" : "mb-1"}`}
+                            >
+                                <span
+                                    className={`${message.userId === userId ? "bg-neutral-200" : "bg-myblue text-white"} py-1.5 px-3 rounded-md break-all`}
+                                >
+                                    {message.content}
+                                </span>
+                                {showTime && (
+                                    <span className="shrink-0 text-xs text-mygray ">
+                                        {currentTime}
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                );
-            })}
-            <div ref={scrollEndRef} />
-            <form className="flex relative mt-5" onSubmit={onSubmit}>
-                <input
-                    required
-                    onChange={onChange}
-                    value={message}
-                    className="bg-transparent rounded-full w-full h-10 focus:outline-none px-5 ring-2 focus:ring-4 transition ring-neutral-200 focus:ring-neutral-50 border-none placeholder:text-neutral-400"
-                    type="text"
-                    name="message"
-                    placeholder="메시지를 작성하세요."
-                />
-                <button className="absolute right-0">
-                    <ArrowUpCircleIcon className="size-10 text-myblue transition-colors hover:text-blue-100" />
-                </button>
+                    );
+                })}
+                <div ref={scrollEndRef} />
+            </div>
+            <form className="p-4 bg-white" onSubmit={onSubmit}>
+                <div className="relative flex items-center">
+                    <input
+                        required
+                        onChange={onChange}
+                        value={message}
+                        className="rounded-full w-full h-10 focus:outline-none px-5 ring-2 transition ring-neutral-200 focus:ring-neutral-400 border-none placeholder:text-neutral-400"
+                        type="text"
+                        name="message"
+                        placeholder="메시지를 작성하세요."
+                    />
+                    <button disabled={!message} className="absolute right-0">
+                        <ArrowUpCircleIcon className="size-10 text-myblue transition-colors hover:text-blue-100" />
+                    </button>
+                </div>
             </form>
         </div>
     );
