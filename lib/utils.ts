@@ -20,6 +20,15 @@ export function formatToTimeAgo(date: string): string {
     }
 }
 
+export function formatTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
+
 export function formatToWon(price: number): string {
     return price.toLocaleString("ko-KR") + "원";
 }

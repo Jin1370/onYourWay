@@ -48,6 +48,41 @@ async function getIsWished(productId: number, userId: number) {
     return Boolean(isWished);
 }
 
+const createChatRoom = async (userId: number) => {
+    "use server";
+    const session = await getSession();
+    const existingChatRooms = await db.chatRooms.findMany({
+        where: {
+            AND: [
+                { users: { some: { id: userId } } },
+                { users: { some: { id: session.id } } },
+            ],
+        },
+        include: {
+            _count: {
+                select: {
+                    users: true,
+                },
+            },
+        },
+    });
+    const existingChatRoom = existingChatRooms.find(
+        (room) => room._count.users === 2,
+    );
+    if (existingChatRoom) redirect(`/chat/${existingChatRoom.id}`);
+    const chatRoom = await db.chatRooms.create({
+        data: {
+            users: {
+                connect: [{ id: userId }, { id: session.id }],
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+    redirect(`/chat/${chatRoom.id}`);
+};
+
 export default async function Product({
     params,
 }: {
@@ -132,14 +167,14 @@ export default async function Product({
                 <div className="flex-7 font-bold ">
                     판매가 {formatToWon(product.price)}
                 </div>
-                <div className="flex-3">
-                    <Link
-                        href={`/products/${product.id}/chat`}
-                        className="primary-btn"
+                {product.userId === session.id ? null : (
+                    <form
+                        action={createChatRoom.bind(null, product.userId)}
+                        className="flex-3"
                     >
-                        채팅하기
-                    </Link>
-                </div>
+                        <button className="primary-btn">채팅하기</button>
+                    </form>
+                )}
             </div>
         </div>
     );
