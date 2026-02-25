@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 async function getChatRooms(userId: number) {
-    const chatRooms = await db.chatRooms.findMany({
+    const chatRooms = await db.chatRoom.findMany({
         where: {
             users: {
                 some: {

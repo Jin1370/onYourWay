@@ -20,7 +20,7 @@ export async function createPost(prevState: any, formData: FormData) {
         return result.error.flatten();
     } else {
         const session = await getSession();
-        const post = await db.posts.create({
+        const post = await db.post.create({
             data: {
                 userId: session.id!,
                 title: result.data.title,

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import ChatMessagesList from "../chat-messages-list";
 
 async function getChatRoom(chatRoomId: string) {
-    const chatRoom = await db.chatRooms.findUnique({
+    const chatRoom = await db.chatRoom.findUnique({
         where: {
             id: chatRoomId,
         },
@@ -25,7 +25,7 @@ async function getChatRoom(chatRoomId: string) {
 }
 
 async function getMessages(chatRoomId: string) {
-    const messages = await db.messages.findMany({
+    const messages = await db.message.findMany({
         where: {
             chatRoomId,
         },

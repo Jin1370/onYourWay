@@ -40,7 +40,7 @@ export async function updateProduct(
     if (!result.success) {
         return result.error.flatten();
     } else {
-        const product = await db.products.update({
+        const product = await db.product.update({
             where: {
                 id: productId,
             },

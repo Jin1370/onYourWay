@@ -11,7 +11,7 @@ export default async function EditPost({
     const postId = Number(strId);
     if (isNaN(postId)) return notFound();
 
-    const post = await db.posts.findUnique({
+    const post = await db.post.findUnique({
         where: {
             id: postId,
         },

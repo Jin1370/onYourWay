@@ -22,7 +22,7 @@ export async function updatePost(
     if (!result.success) {
         return result.error.flatten();
     } else {
-        const post = await db.posts.update({
+        const post = await db.post.update({
             where: {
                 id: postId,
             },

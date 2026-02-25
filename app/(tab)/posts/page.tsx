@@ -8,7 +8,7 @@ import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
 async function getPosts() {
-    const posts = await db.posts.findMany({
+    const posts = await db.post.findMany({
         select: {
             id: true,
             title: true,

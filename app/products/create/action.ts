@@ -37,7 +37,7 @@ export async function createProduct(prevState: any, formData: FormData) {
         return result.error.flatten();
     } else {
         const session = await getSession();
-        const product = await db.products.create({
+        const product = await db.product.create({
             data: {
                 userId: session.id!,
                 title: result.data.title,

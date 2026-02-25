@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 
 export async function wishProduct(productId: number) {
     const session = await getSession();
-    await db.wishes.create({
+    await db.wish.create({
         data: {
             productId,
             userId: session.id!,
@@ -16,7 +16,7 @@ export async function wishProduct(productId: number) {
 }
 export async function unWishProduct(productId: number) {
     const session = await getSession();
-    await db.wishes.delete({
+    await db.wish.delete({
         where: {
             id: {
                 productId,

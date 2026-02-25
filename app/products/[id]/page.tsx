@@ -10,7 +10,7 @@ import DeleteBtn from "@/components/delete-button";
 import WishButton from "@/components/wish-button";
 
 async function getProduct(productId: number) {
-    const product = await db.products.update({
+    const product = await db.product.update({
         where: {
             id: productId,
         },
@@ -37,7 +37,7 @@ async function getProduct(productId: number) {
 }
 
 async function getIsWished(productId: number, userId: number) {
-    const isWished = await db.wishes.findUnique({
+    const isWished = await db.wish.findUnique({
         where: {
             id: {
                 productId,
@@ -51,7 +51,7 @@ async function getIsWished(productId: number, userId: number) {
 const createChatRoom = async (userId: number) => {
     "use server";
     const session = await getSession();
-    const existingChatRooms = await db.chatRooms.findMany({
+    const existingChatRooms = await db.chatRoom.findMany({
         where: {
             AND: [
                 { users: { some: { id: userId } } },
@@ -70,7 +70,7 @@ const createChatRoom = async (userId: number) => {
         (room) => room._count.users === 2,
     );
     if (existingChatRoom) redirect(`/chat/${existingChatRoom.id}`);
-    const chatRoom = await db.chatRooms.create({
+    const chatRoom = await db.chatRoom.create({
         data: {
             users: {
                 connect: [{ id: userId }, { id: session.id }],
@@ -100,7 +100,7 @@ export default async function Product({
 
     async function deleteProduct() {
         "use server";
-        await db.products.delete({
+        await db.product.delete({
             where: {
                 id: product.id,
             },

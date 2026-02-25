@@ -11,7 +11,7 @@ export default async function EditProduct({
     const productId = Number(strId);
     if (isNaN(productId)) return notFound();
 
-    const product = await db.products.findUnique({
+    const product = await db.product.findUnique({
         where: {
             id: productId,
         },

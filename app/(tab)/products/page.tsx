@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 async function getProducts() {
-    const products = await db.products.findMany({
+    const products = await db.product.findMany({
         select: {
             id: true,
             title: true,

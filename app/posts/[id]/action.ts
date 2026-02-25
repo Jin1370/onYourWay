@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 
 export async function likePost(postId: number) {
     const session = await getSession();
-    await db.likes.create({
+    await db.like.create({
         data: {
             postId,
             userId: session.id!,
@@ -16,7 +16,7 @@ export async function likePost(postId: number) {
 }
 export async function dislikePost(postId: number) {
     const session = await getSession();
-    await db.likes.delete({
+    await db.like.delete({
         where: {
             id: {
                 postId,
@@ -33,7 +33,7 @@ export async function createComment(postId: number, formData: FormData) {
         return;
     }
     const session = await getSession();
-    await db.comments.create({
+    await db.comment.create({
         data: {
             content,
             userId: session.id!,
@@ -43,7 +43,7 @@ export async function createComment(postId: number, formData: FormData) {
     revalidatePath(`/posts/${postId}`);
 }
 export async function deleteComment(postId: number, commentId: number) {
-    await db.comments.delete({
+    await db.comment.delete({
         where: {
             id: commentId,
         },
