@@ -9,24 +9,25 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  username   String     @unique
-  email      String?    @unique
-  password   String?
+  id           Int         @id @default(autoincrement())
+  username     String      @unique
+  email        String?     @unique
+  password     String?
   //phone      String?    @unique
   //github_id  String?    @unique
-  avatar     String?
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
+  avatar       String?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
   //tokens     SMSToken[]
-  posts      Post[]
-  comments   Comment[]
-  likes      Like[]
-  products   Product[]
-  wishes     Wish[]
-  messages   Message[]
-  chat_rooms ChatRoom[]
-  schools    School[]
+  posts        Post[]
+  comments     Comment[]
+  likes        Like[]
+  products     Product[]
+  wishes       Wish[]
+  messages     Message[]
+  chat_rooms   ChatRoom[]
+  university   University? @relation(fields: [universityId], references: [id])
+  universityId Int?
 }
 
 model Post {
@@ -117,12 +118,21 @@ model Message {
   chatRoomId String
 }
 
-model School {
-  id      Int     @id @default(autoincrement())
-  name    String
-  website String?
-  country String?
-  domain  String? @unique
+model University {
+  id             Int     @id @default(autoincrement())
+  //hipolabs api
+  name           String
+  website        String?
+  country        String?
+  domain         String? @unique
+  //google api
+  placeId        String  @unique
+  lat            Float?
+  lng            Float?
+  address        String?
+  photoReference String?
+  googleRating   Float?
+  googleReviews  Json?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

@@ -27,8 +27,8 @@ export default function TabBar() {
                     <OutlineGlobeAsiaAustraliaIcon className="w-7 h-7" />
                 )}
             </Link>
-            <Link href="/school">
-                {pathname === "/school" ? (
+            <Link href="/university">
+                {pathname === "/university" ? (
                     <SolidAcademicCapIcon className="w-7 h-7 text-myblue" />
                 ) : (
                     <OutlineAcademicCapIcon className="w-7 h-7" />

@@ -2,22 +2,7 @@
 
 import Input from "@/components/input";
 import { useEffect, useState } from "react";
-/*
-export async function fetchUniversities(keyword: string) {
-    try {
-        const response = await fetch(
-            `http://universities.hipolabs.com/search?name=${keyword}`,
-        );
-        if (!response.ok) throw new Error("데이터를 불러오는데 실패했습니다.");
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.log(error);
-        return [];
-    }
-}
-*/
+import UniversityModal from "./university-modal";
 
 interface University {
     name: string;
@@ -26,9 +11,10 @@ interface University {
     web_pages: string[];
 }
 
-export default function School() {
+export default function University() {
     const [query, setQuery] = useState(""); // 입력값
     const [results, setResults] = useState<University[]>([]); // 검색 결과
+    const [selected, setSelected] = useState<University | null>(null);
 
     //사용자가 글자를 입력하면 0.5초 타이머 대기 후 api 호출
     //디바운싱: 짧은 시간 동안 여러 번 발생하는 이벤트 중 마지막 이벤트만 한 번 실행하여 성능 향상
@@ -64,7 +50,7 @@ export default function School() {
                         <li
                             key={idx}
                             className="p-2 hover:bg-gray-200 cursor-pointer even:bg-gray-100 text-sm"
-                            onClick={() => alert(`${univ.name} 선택됨!`)}
+                            onClick={() => setSelected(univ)}
                         >
                             {univ.name}
                             <p className="text-mygray">{univ.country}</p>
@@ -72,6 +58,15 @@ export default function School() {
                     ))}
                 </ul>
             </div>
+            {selected && (
+                <UniversityModal
+                    univName={selected.name}
+                    country={selected.country}
+                    domain={selected.domains[0]}
+                    website={selected.web_pages[0]}
+                    onClose={() => setSelected(null)}
+                />
+            )}
         </div>
     );
 }
