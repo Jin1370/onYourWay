@@ -51,7 +51,7 @@ export default async function ChatRooms() {
                 return (
                     <Link
                         key={chatRoom.id}
-                        href={`/chat/${chatRoom.id}`}
+                        href={`/chats/${chatRoom.id}`}
                         className="pb-5 mb-5 border-b border-neutral-300 text-neutral-700 flex flex-col last:border-b-0 last:pb-0"
                     >
                         <div className="flex items-center gap-5">

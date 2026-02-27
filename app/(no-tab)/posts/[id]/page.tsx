@@ -40,7 +40,7 @@ async function getPost(postId: number) {
 }
 
 async function getComments(postId: number) {
-    const comments = await db.comment.findMany({
+    const comments = await db.postComment.findMany({
         where: {
             postId,
         },
@@ -61,7 +61,7 @@ async function getComments(postId: number) {
 }
 
 async function getIsLiked(postId: number, userId: number) {
-    const isLiked = await db.like.findUnique({
+    const isLiked = await db.postLike.findUnique({
         where: {
             id: {
                 postId,

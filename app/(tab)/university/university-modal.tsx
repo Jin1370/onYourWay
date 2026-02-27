@@ -103,7 +103,7 @@ export default function UniversityModal({
                         )}
 
                         <Link
-                            href={`/univ-review/${data.id}`}
+                            href={`/university/${data.id}/reviews`}
                             className="primary-btn text-lg"
                         >
                             리뷰 보기

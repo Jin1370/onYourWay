@@ -3,7 +3,10 @@
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { HeartIcon as OutlineHeartIcon } from "@heroicons/react/24/outline";
 import { startTransition, useOptimistic } from "react";
-import { unWishProduct, wishProduct } from "@/app/products/[id]/action";
+import {
+    unWishProduct,
+    wishProduct,
+} from "@/app/(no-tab)/products/[id]/action";
 
 interface WishButtonProps {
     isWished: boolean;
