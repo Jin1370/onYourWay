@@ -9,17 +9,32 @@ async function getChatRoom(chatRoomId: string) {
             id: chatRoomId,
         },
         include: {
-            users: {
-                select: { id: true, username: true, avatar: true },
+            members: {
+                select: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                            avatar: true,
+                        },
+                    },
+                },
+            },
+            university: {
+                select: {
+                    name: true,
+                },
             },
         },
     });
     if (chatRoom) {
         const session = await getSession();
         const canSee = Boolean(
-            chatRoom.users.find((user) => user.id === session.id),
+            chatRoom.members.find((member) => member.user.id === session.id),
         );
-        if (!canSee) return null;
+        if (!canSee) {
+            return null;
+        }
     }
     return chatRoom;
 }
@@ -77,14 +92,18 @@ export default async function Chat({
     if (!user) {
         return notFound();
     }
+    //참여자 명단을 members에서 추출하여 전달
+    const participants = chatRoom.members.map((member) => member.user);
     return (
         <ChatMessagesList
             chatRoomId={id}
-            participants={chatRoom.users}
+            participants={participants}
             userId={session.id!}
             username={user.username}
             avatar={user.avatar!}
             initialMessages={initialMessages}
+            chatRoomType={chatRoom.type}
+            universityName={chatRoom.university?.name}
         />
     );
 }

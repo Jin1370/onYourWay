@@ -29,6 +29,12 @@ export function formatTime(dateString: string): string {
     });
 }
 
+export function formatDate(date: Date) {
+    return new Intl.DateTimeFormat("ko-KR", {
+        dateStyle: "full",
+    }).format(date);
+}
+
 export function formatToWon(price: number): string {
     return price.toLocaleString("ko-KR") + "원";
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUniversityDetails } from "./action";
-import StarRating from "@/components/review-star";
+import { getUniversityDetails, saveUnivInterest } from "./action";
 import Link from "next/link";
 
 interface UniversityModalProps {
@@ -101,13 +100,12 @@ export default function UniversityModal({
                                 </a>
                             </div>
                         )}
-
-                        <Link
-                            href={`/university/${data.id}/reviews`}
-                            className="primary-btn text-lg"
+                        <form
+                            action={saveUnivInterest.bind(null, data.id)}
+                            className="primary-btn"
                         >
-                            리뷰 보기
-                        </Link>
+                            <button>관심 학교 추가</button>
+                        </form>
                     </>
                 )}
             </div>

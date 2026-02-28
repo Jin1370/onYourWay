@@ -11,7 +11,7 @@ interface University {
     web_pages: string[];
 }
 
-export default function University() {
+export default function AddUnivInterest() {
     const [query, setQuery] = useState(""); // 입력값
     const [results, setResults] = useState<University[]>([]); // 검색 결과
     const [selected, setSelected] = useState<University | null>(null);

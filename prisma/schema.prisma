@@ -9,28 +9,24 @@ datasource db {
 }
 
 model User {
-  id                 Int                 @id @default(autoincrement())
-  username           String              @unique
-  email              String?             @unique
-  password           String?
+  id              Int              @id @default(autoincrement())
+  username        String           @unique
+  email           String?          @unique
+  password        String?
   //phone      String?    @unique
   //github_id  String?    @unique
-  avatar             String?
-  created_at         DateTime            @default(now())
-  updated_at         DateTime            @updatedAt
+  avatar          String?
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
   //tokens     SMSToken[]
-  posts              Post[]
-  comments           PostComment[]
-  likes              PostLike[]
-  products           Product[]
-  wishes             Wish[]
-  messages           Message[]
-  chat_rooms         ChatRoom[]
-  university         University?         @relation(fields: [universityId], references: [id])
-  universityId       Int?
-  univReviews        UnivReview[]
-  univReviewLikes    UnivReviewLike[]
-  univReviewComments UnivReviewComment[]
+  posts           Post[]
+  comments        PostComment[]
+  likes           PostLike[]
+  products        Product[]
+  wishes          Wish[]
+  messages        Message[]
+  interestedUnivs University[]     @relation("UserUnivInterests")
+  chatRoomMembers ChatRoomMember[]
 }
 
 model Post {
@@ -82,17 +78,18 @@ model Product {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int
-  wishes Wish[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  wishes    Wish[]
+  chatRooms ChatRoom[]
 }
 
 model Wish {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  user      User    @relation(fields: [userId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId    Int
   productId Int
 
@@ -100,12 +97,36 @@ model Wish {
 }
 
 model ChatRoom {
-  id    String @id @default(cuid()) //보안 강화 & 여러 서버에서 동시에 ID를 만드는 경우 중복 방지
-  users User[]
+  id   String @id @default(cuid()) //보안 강화 & 여러 서버에서 동시에 ID를 만드는 경우 중복 방지
+  type String @default("DIRECT") //1:1 채팅을 기본으로
 
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  messages   Message[]
+  university   University? @relation(fields: [universityId], references: [id])
+  universityId Int?        @unique
+
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int?
+
+  members  ChatRoomMember[]
+  messages Message[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model ChatRoomMember {
+  id String @id @default(cuid())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoomId String
+
+  is_muted     Boolean  @default(false)
+  last_read_at DateTime @default(now())
+
+  //한 유저가 같은 방에 중복 입장 방지
+  @@unique([userId, chatRoomId])
 }
 
 model Message {
@@ -116,7 +137,7 @@ model Message {
   updated_at DateTime @updatedAt
 
   user       User     @relation(fields: [userId], references: [id])
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   userId     Int
   chatRoomId String
 }
@@ -124,7 +145,7 @@ model Message {
 model University {
   id             Int     @id @default(autoincrement())
   //hipolabs api
-  name           String
+  name           String  @unique
   website        String?
   country        String?
   domain         String? @unique
@@ -140,48 +161,6 @@ model University {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  users       User[]
-  univReviews UnivReview[]
-}
-
-model UnivReview {
-  id         Int      @id @default(autoincrement())
-  academic   String
-  campus     String
-  cost       String
-  culture    String
-  views      Int      @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user               User                @relation(fields: [userId], references: [id])
-  university         University          @relation(fields: [universityId], references: [id])
-  userId             Int
-  universityId       Int
-  univReviewLikes    UnivReviewLike[]
-  univReviewComments UnivReviewComment[]
-}
-
-model UnivReviewLike {
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  univReview   UnivReview @relation(fields: [univReviewId], references: [id], onDelete: Cascade)
-  userId       Int
-  univReviewId Int
-
-  @@id(name: "id", [userId, univReviewId])
-}
-
-model UnivReviewComment {
-  id         Int      @id @default(autoincrement())
-  content    String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  univReview   UnivReview @relation(fields: [univReviewId], references: [id], onDelete: Cascade)
-  userId       Int
-  univReviewId Int
+  interestedBy User[]     @relation("UserUnivInterests")
+  chatRooms    ChatRoom[]
 }

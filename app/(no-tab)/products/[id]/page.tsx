@@ -48,32 +48,33 @@ async function getIsWished(productId: number, userId: number) {
     return Boolean(isWished);
 }
 
-const createChatRoom = async (userId: number) => {
+const createChatRoom = async (sellerId: number, productId: number) => {
     "use server";
     const session = await getSession();
-    const existingChatRooms = await db.chatRoom.findMany({
+    const existingChatRoom = await db.chatRoom.findFirst({
         where: {
-            AND: [
-                { users: { some: { id: userId } } },
-                { users: { some: { id: session.id } } },
-            ],
-        },
-        include: {
-            _count: {
-                select: {
-                    users: true,
+            productId,
+            type: "DIRECT", //1:1 채팅,
+            members: {
+                every: {
+                    userId: {
+                        in: [sellerId, session.id!],
+                    },
                 },
             },
         },
+        select: {
+            id: true,
+        },
     });
-    const existingChatRoom = existingChatRooms.find(
-        (room) => room._count.users === 2,
-    );
-    if (existingChatRoom) redirect(`/chat/${existingChatRoom.id}`);
+    if (existingChatRoom) redirect(`/chats/${existingChatRoom.id}`);
+
     const chatRoom = await db.chatRoom.create({
         data: {
-            users: {
-                connect: [{ id: userId }, { id: session.id }],
+            type: "DIRECT",
+            productId,
+            members: {
+                create: [{ userId: sellerId }, { userId: session.id! }],
             },
         },
         select: {
@@ -169,7 +170,11 @@ export default async function Product({
                 </div>
                 {product.userId === session.id ? null : (
                     <form
-                        action={createChatRoom.bind(null, product.userId)}
+                        action={createChatRoom.bind(
+                            null,
+                            product.userId,
+                            product.id,
+                        )}
                         className="flex-3"
                     >
                         <button className="primary-btn">채팅하기</button>
