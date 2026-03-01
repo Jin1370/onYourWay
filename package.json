@@ -17,6 +17,8 @@
     "@supabase/supabase-js": "^2.97.0",
     "bcrypt": "^6.0.0",
     "daisyui": "^5.5.18",
+    "firebase": "^12.10.0",
+    "firebase-admin": "^13.7.0",
     "iron-session": "^8.0.4",
     "next": "16.1.6",
     "react": "19.2.3",

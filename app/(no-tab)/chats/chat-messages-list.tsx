@@ -165,7 +165,7 @@ export default function ChatMessagesList({
                     return (
                         <div key={message.id}>
                             {isFirstMessageOfDay && (
-                                <div className="flex items-center w-full my-2">
+                                <div className="flex items-center w-full my-5">
                                     <div className="flex-1 border-t border-neutral-400" />
                                     <span className="px-4 text-sm text-mygray">
                                         {formatDate(

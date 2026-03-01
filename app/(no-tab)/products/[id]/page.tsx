@@ -81,7 +81,7 @@ const createChatRoom = async (sellerId: number, productId: number) => {
             id: true,
         },
     });
-    redirect(`/chat/${chatRoom.id}`);
+    redirect(`/chats/${chatRoom.id}`);
 };
 
 export default async function Product({

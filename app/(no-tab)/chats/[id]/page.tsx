@@ -2,6 +2,7 @@ import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { notFound } from "next/navigation";
 import ChatMessagesList from "../chat-messages-list";
+import ChatNotificationConsent from "@/components/chat-notification-consent";
 
 async function getChatRoom(chatRoomId: string) {
     const chatRoom = await db.chatRoom.findUnique({
@@ -95,15 +96,18 @@ export default async function Chat({
     //참여자 명단을 members에서 추출하여 전달
     const participants = chatRoom.members.map((member) => member.user);
     return (
-        <ChatMessagesList
-            chatRoomId={id}
-            participants={participants}
-            userId={session.id!}
-            username={user.username}
-            avatar={user.avatar!}
-            initialMessages={initialMessages}
-            chatRoomType={chatRoom.type}
-            universityName={chatRoom.university?.name}
-        />
+        <>
+            <ChatNotificationConsent />
+            <ChatMessagesList
+                chatRoomId={id}
+                participants={participants}
+                userId={session.id!}
+                username={user.username}
+                avatar={user.avatar!}
+                initialMessages={initialMessages}
+                chatRoomType={chatRoom.type}
+                universityName={chatRoom.university?.name}
+            />
+        </>
     );
 }

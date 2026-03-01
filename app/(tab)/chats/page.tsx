@@ -1,6 +1,7 @@
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
+import ChatNotificationConsent from "@/components/chat-notification-consent";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -52,6 +53,7 @@ export default async function ChatRooms() {
     const chatRooms = await getChatRooms(session.id!);
     return (
         <div className="flex flex-col p-5 pb-20">
+            <ChatNotificationConsent />
             {chatRooms.map((chatRoom) => {
                 const otherMembers = chatRoom.members
                     .filter((m) => m.user.id !== session.id)
@@ -71,7 +73,7 @@ export default async function ChatRooms() {
                     >
                         <div className="flex items-center gap-5">
                             {chatRoom.type === "UNIVERSITY" ? (
-                                <div className="size-9 rounded-full  flex items-center justify-center bg-blue-100 text-white font-bold text-lg">
+                                <div className="size-9 rounded-full  flex items-center justify-center bg-blue-100 text-white font-bold text-lg shrink-0">
                                     🏛️
                                 </div>
                             ) : (
@@ -83,11 +85,11 @@ export default async function ChatRooms() {
                                     alt={roomTitle}
                                     width={50}
                                     height={50}
-                                    className="size-9 rounded-full object-cover"
+                                    className="size-9 rounded-full object-cover shrink-0"
                                 />
                             )}
-                            <div className="flex flex-col flex-1">
-                                <h2 className="font-semibold text-lg">
+                            <div className="flex flex-col flex-1 min-w-0">
+                                <h2 className="font-semibold text-lg line-clamp-1 break-all">
                                     {roomTitle}
                                     {chatRoom.type === "DIRECT" &&
                                     participantsNum > 1
@@ -96,8 +98,8 @@ export default async function ChatRooms() {
                                           ? ` (${participantsNum + 1})`
                                           : null}
                                 </h2>
-                                <div className="flex justify-between">
-                                    <span className="line-clamp-1 pr-5">
+                                <div className="flex justify-between items-center w-full gap-3 text-mygray">
+                                    <span className="line-clamp-1 break-all">
                                         {chatRoom.messages[0]?.content ||
                                             "새로운 채팅방이 생성되었습니다."}
                                     </span>

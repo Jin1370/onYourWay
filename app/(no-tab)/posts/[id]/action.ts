@@ -43,6 +43,24 @@ export async function createComment(postId: number, formData: FormData) {
     revalidatePath(`/posts/${postId}`);
 }
 export async function deleteComment(postId: number, commentId: number) {
+    const session = await getSession();
+    if (!session.id) {
+        return;
+    }
+
+    const comment = await db.postComment.findUnique({
+        where: {
+            id: commentId,
+        },
+        select: {
+            userId: true,
+        },
+    });
+
+    if (!comment || comment.userId !== session.id) {
+        return;
+    }
+
     await db.postComment.delete({
         where: {
             id: commentId,
