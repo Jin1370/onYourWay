@@ -17,6 +17,7 @@ export default async function EditPost({
         },
         select: {
             id: true,
+            postType: true,
             title: true,
             content: true,
         },

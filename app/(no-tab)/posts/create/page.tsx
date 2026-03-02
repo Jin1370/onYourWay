@@ -1,32 +1,30 @@
-"use client";
+import db from "@/lib/db";
+import getSession from "@/lib/session";
+import CreatePostForm from "./create-post-form";
 
-import Button from "@/components/button";
-import Input from "@/components/input";
-import { useActionState } from "react";
-import { createPost } from "./action";
-import InputContent from "@/components/input-content";
+export default async function CreatePost({
+    searchParams,
+}: {
+    searchParams: Promise<{ tab?: string }>;
+}) {
+    const session = await getSession();
+    const { tab } = await searchParams;
+    const currentTab: "lifelog" | "free" =
+        tab === "free" ? "free" : "lifelog";
 
-export default function CreatePost() {
-    const [state, trigger] = useActionState(createPost, null);
+    const user = await db.user.findUnique({
+        where: {
+            id: session.id!,
+        },
+        select: {
+            affiliatedUnivId: true,
+        },
+    });
+
     return (
-        <div className="flex flex-col text-base min-h-screen py-20 px-8 gap-4">
-            <form action={trigger} noValidate className="flex flex-col gap-3">
-                <Input
-                    type="text"
-                    placeholder="제목"
-                    required
-                    name="title"
-                    errors={state?.fieldErrors.title}
-                />
-                <InputContent
-                    placeholder="본문"
-                    required
-                    name="content"
-                    errors={state?.fieldErrors.content}
-                    rowsNum={10}
-                />
-                <Button text="등록" />
-            </form>
-        </div>
+        <CreatePostForm
+            tab={currentTab}
+            canWriteLifelog={Boolean(user?.affiliatedUnivId)}
+        />
     );
 }

@@ -8,6 +8,11 @@ datasource db {
   provider = "sqlite" //"postgresql"
 }
 
+enum PostType {
+  LIFELOG
+  FREE
+}
+
 model User {
   id              Int              @id @default(autoincrement())
   username        String           @unique
@@ -27,11 +32,14 @@ model User {
   wishes          Wish[]
   messages        Message[]
   interestedUnivs University[]     @relation("UserUnivInterests")
+  affiliatedUniv   University?      @relation("UserAffiliatedUniv", fields: [affiliatedUnivId], references: [id])
+  affiliatedUnivId Int?
   chatRoomMembers ChatRoomMember[]
 }
 
 model Post {
   id         Int      @id @default(autoincrement())
+  postType   PostType @default(LIFELOG)
   title      String
   content    String
   views      Int      @default(0)
@@ -163,5 +171,6 @@ model University {
   updated_at DateTime @updatedAt
 
   interestedBy User[]     @relation("UserUnivInterests")
+  affiliatedUsers User[]  @relation("UserAffiliatedUniv")
   chatRooms    ChatRoom[]
 }

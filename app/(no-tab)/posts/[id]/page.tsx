@@ -120,7 +120,12 @@ export default async function Post({
                 </div>
             </div>
             <h2 className="text-lg font-semibold mb-1">{post.title}</h2>
-            <p className="mb-10">{post.content}</p>
+            {post.postType === "FREE" ? (
+                <span className="inline-flex mb-3 text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                    자유글
+                </span>
+            ) : null}
+            {post.content ? <p className="mb-10">{post.content}</p> : null}
             <div className="flex flex-col gap-3 items-start">
                 <div className="flex items-center gap-2 text-mygray text-sm">
                     <EyeIcon className="size-5" />
