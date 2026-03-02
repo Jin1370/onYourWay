@@ -61,6 +61,18 @@ async function getMessages(chatRoomId: string) {
     return messages;
 }
 
+async function markAsRead(chatRoomId: string, userId: number) {
+    await db.chatRoomMember.updateMany({
+        where: {
+            chatRoomId,
+            userId,
+        },
+        data: {
+            last_read_at: new Date(),
+        },
+    });
+}
+
 async function getUserProfile() {
     const session = await getSession();
     const user = await db.user.findUnique({
@@ -89,6 +101,7 @@ export default async function Chat({
     }
     const initialMessages = await getMessages(chatRoom.id);
     const session = await getSession();
+    await markAsRead(chatRoom.id, session.id!);
     const user = await getUserProfile();
     if (!user) {
         return notFound();

@@ -1,9 +1,8 @@
 import db from "@/lib/db";
 import getSession from "@/lib/session";
-import ChatNotificationConsent from "@/components/chat-notification-consent";
-import ChatsList from "./chats-list";
+import { NextResponse } from "next/server";
 
-async function getChatRooms(userId: number) {
+async function getChatRoomsSummary(userId: number) {
     const chatRooms = await db.chatRoom.findMany({
         where: {
             members: {
@@ -44,6 +43,7 @@ async function getChatRooms(userId: number) {
             },
         },
     });
+
     const chatRoomsWithUnreadCount = await Promise.all(
         chatRooms.map(async (chatRoom) => {
             const myMember = chatRoom.members.find(
@@ -67,16 +67,16 @@ async function getChatRooms(userId: number) {
             };
         }),
     );
+
     return chatRoomsWithUnreadCount;
 }
 
-export default async function ChatRooms() {
+export async function GET() {
     const session = await getSession();
-    const chatRooms = await getChatRooms(session.id!);
-    return (
-        <div className="flex flex-col p-5 pb-20">
-            <ChatNotificationConsent />
-            <ChatsList initialChatRooms={chatRooms} userId={session.id!} />
-        </div>
-    );
+    if (!session.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const chatRooms = await getChatRoomsSummary(session.id);
+    return NextResponse.json({ chatRooms });
 }
