@@ -12,6 +12,7 @@ async function getChatRoom(chatRoomId: string) {
         include: {
             members: {
                 select: {
+                    last_read_at: true,
                     user: {
                         select: {
                             id: true,
@@ -107,7 +108,10 @@ export default async function Chat({
         return notFound();
     }
     //참여자 명단을 members에서 추출하여 전달
-    const participants = chatRoom.members.map((member) => member.user);
+    const participants = chatRoom.members.map((member) => ({
+        ...member.user,
+        last_read_at: member.last_read_at,
+    }));
     return (
         <>
             <ChatNotificationConsent />

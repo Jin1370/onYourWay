@@ -7,6 +7,9 @@ import Link from "next/link";
 
 async function getProducts() {
     const products = await db.product.findMany({
+        orderBy: {
+            created_at: "desc",
+        },
         select: {
             id: true,
             title: true,

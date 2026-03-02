@@ -12,6 +12,9 @@ async function getPosts(tab: "lifelog" | "free") {
         where: {
             postType: tab === "free" ? "FREE" : "LIFELOG",
         },
+        orderBy: {
+            created_at: "desc",
+        },
         select: {
             id: true,
             postType: true,

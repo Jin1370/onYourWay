@@ -31,7 +31,11 @@ export default function CreateProduct() {
     const [state, trigger] = useActionState(createProduct, null);
     return (
         <div className="flex flex-col text-base min-h-screen py-10 px-8 gap-4">
-            <form action={trigger} noValidate className="flex flex-col gap-3">
+            <form
+                action={trigger}
+                noValidate
+                className="flex flex-col gap-3"
+            >
                 <label
                     htmlFor="photo" //id="photo"인 input과 label을 연결
                     className="border-2 aspect-square flex flex-col items-center justify-center text-neutral-300 border-neutral-300 rounded-md border-dashed cursor-pointer bg-center bg-cover"
@@ -79,6 +83,15 @@ export default function CreateProduct() {
                     name="price"
                     errors={state?.fieldErrors.price}
                 />
+                {state?.formErrors?.length ? (
+                    <div className="flex flex-col gap-2">
+                        {state.formErrors.map((error: string, idx: number) => (
+                            <span key={idx} className="text-red-500 text-sm">
+                                {error}
+                            </span>
+                        ))}
+                    </div>
+                ) : null}
                 <Button text="등록" />
             </form>
         </div>

@@ -1,13 +1,11 @@
 "use client";
 
 import { formatToTimeAgo } from "@/lib/utils";
-import { createClient, RealtimeChannel } from "@supabase/supabase-js";
+import { getSupabaseClient } from "@/lib/supabase-client";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-const SUPABASE_URL = "https://xvhlzzgnlvjssyftujvh.supabase.co";
-const SUPABASE_PUBLIC_KEY = "sb_publishable_J-MWCPiI_DmRYAchyzYo8Q_5xxPYQP7";
 
 interface ChatRoomSummary {
     id: string;
@@ -86,7 +84,7 @@ export default function ChatsList({
     }, [refreshChatRooms]);
 
     useEffect(() => {
-        const client = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+        const client = getSupabaseClient();
         const channels: RealtimeChannel[] = [];
 
         roomIds.forEach((roomId) => {

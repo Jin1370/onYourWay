@@ -11,8 +11,12 @@ async function getChatRoomsSummary(userId: number) {
                 },
             },
         },
+        orderBy: {
+            created_at: "desc",
+        },
         select: {
             id: true,
+            created_at: true,
             type: true,
             university: {
                 select: {
@@ -67,8 +71,15 @@ async function getChatRoomsSummary(userId: number) {
             };
         }),
     );
-
-    return chatRoomsWithUnreadCount;
+    return chatRoomsWithUnreadCount.sort((a, b) => {
+        const aTime = new Date(
+            a.messages[0]?.created_at ?? a.created_at,
+        ).getTime();
+        const bTime = new Date(
+            b.messages[0]?.created_at ?? b.created_at,
+        ).getTime();
+        return bTime - aTime;
+    });
 }
 
 export async function GET() {

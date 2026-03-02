@@ -31,16 +31,35 @@ export default function UniversitySearchPicker({
 
     useEffect(() => {
         if (query.length < 2) {
+            setResults([]);
             return;
         }
+        const controller = new AbortController();
         const timer = setTimeout(async () => {
-            const data = await fetch(
-                `http://universities.hipolabs.com/search?name=${query}`,
-            ).then((res) => res.json());
-
-            setResults(data.slice(0, 10));
+            try {
+                const res = await fetch(
+                    `/api/universities/search?q=${encodeURIComponent(query)}`,
+                    {
+                        signal: controller.signal,
+                    },
+                );
+                if (!res.ok) {
+                    setResults([]);
+                    return;
+                }
+                const data = (await res.json()) as {
+                    results?: University[];
+                };
+                setResults((data.results ?? []).slice(0, 10));
+            } catch (error) {
+                if ((error as Error).name === "AbortError") return;
+                setResults([]);
+            }
         }, 500);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
     }, [query]);
 
     return (

@@ -15,6 +15,42 @@ export async function saveAffiliatedUniv(univId: number) {
             affiliatedUnivId: univId,
         },
     });
+
+    let chatRoom = await db.chatRoom.findUnique({
+        where: {
+            universityId: univId,
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    if (!chatRoom) {
+        chatRoom = await db.chatRoom.create({
+            data: {
+                type: "UNIVERSITY",
+                universityId: univId,
+            },
+            select: {
+                id: true,
+            },
+        });
+    }
+
+    await db.chatRoomMember.upsert({
+        where: {
+            userId_chatRoomId: {
+                userId: session.id!,
+                chatRoomId: chatRoom.id,
+            },
+        },
+        update: {},
+        create: {
+            userId: session.id!,
+            chatRoomId: chatRoom.id,
+        },
+    });
+
     redirect("/profile");
 }
 export { getUniversityDetails };

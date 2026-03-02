@@ -95,3 +95,20 @@ export async function saveMessage(content: string, chatRoomId: string) {
         console.error("Failed to send chat push notification:", error);
     }
 }
+
+export async function markAsRead(chatRoomId: string) {
+    const session = await getSession();
+    if (!session.id) {
+        return;
+    }
+
+    await db.chatRoomMember.updateMany({
+        where: {
+            chatRoomId,
+            userId: session.id,
+        },
+        data: {
+            last_read_at: new Date(),
+        },
+    });
+}
