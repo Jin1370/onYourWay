@@ -1,13 +1,12 @@
-import LikeButton from "@/components/like-button";
+import DeleteBtn from "@/components/delete-button";
+import WishButton from "@/components/wish-button";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import DeleteBtn from "@/components/delete-button";
-import WishButton from "@/components/wish-button";
+import { notFound, redirect } from "next/navigation";
 
 async function getProduct(productId: number) {
     const product = await db.product.update({
@@ -54,7 +53,7 @@ const createChatRoom = async (sellerId: number, productId: number) => {
     const existingChatRoom = await db.chatRoom.findFirst({
         where: {
             productId,
-            type: "DIRECT", //1:1 채팅,
+            type: "DIRECT",
             members: {
                 every: {
                     userId: {
@@ -116,7 +115,7 @@ export default async function Product({
                     width={28}
                     height={28}
                     className="size-7 rounded-full"
-                    src={product.user.avatar!}
+                    src={product.user.avatar || "/default-avatar.png"}
                     alt={product.user.username}
                 />
                 <div>
@@ -143,7 +142,7 @@ export default async function Product({
             <div className="flex flex-col gap-3 items-start">
                 <div className="flex items-center gap-2 text-mygray text-sm">
                     <EyeIcon className="size-5" />
-                    <span>조회 {product.views}</span>
+                    <span>{product.views}</span>
                 </div>
                 <div className="flex gap-2">
                     <WishButton
@@ -165,7 +164,7 @@ export default async function Product({
                 </div>
             </div>
             <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-screen-sm flex items-center border-t border-neutral-300 bg-white p-5 text-lg">
-                <div className="flex-7 font-bold ">
+                <div className="flex-7 font-bold">
                     판매가 {formatToWon(product.price)}
                 </div>
                 {product.userId === session.id ? null : (
@@ -184,3 +183,4 @@ export default async function Product({
         </div>
     );
 }
+

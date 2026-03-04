@@ -1,15 +1,16 @@
 import Button from "@/components/button";
+import DeleteBtn from "@/components/delete-button";
 import Input from "@/components/input";
+import LifelogViewer from "@/components/lifelog-viewer";
 import LikeButton from "@/components/like-button";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createComment, deleteComment } from "./action";
-import Link from "next/link";
-import DeleteBtn from "@/components/delete-button";
 
 async function getPost(postId: number) {
     const post = await db.post.update({
@@ -26,6 +27,11 @@ async function getPost(postId: number) {
                 select: {
                     username: true,
                     avatar: true,
+                    affiliatedUniv: {
+                        select: {
+                            name: true,
+                        },
+                    },
                 },
             },
             _count: {
@@ -105,31 +111,40 @@ export default async function Post({
                     width={28}
                     height={28}
                     className="size-7 rounded-full"
-                    src={post.user.avatar!}
+                    src={post.user.avatar || "/default-avatar.png"}
                     alt={post.user.username}
                 />
                 <div>
-                    <span className="text-sm font-semibold">
-                        {post.user.username}
-                    </span>
-                    <div className="text-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">
+                            {post.user.username}
+                        </span>
+                        {post.postType === "LIFELOG" &&
+                        post.user.affiliatedUniv?.name ? (
+                            <span className="inline-flex items-center text-[11px] leading-4 px-1.5 py-0 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                                {post.user.affiliatedUniv.name}
+                            </span>
+                        ) : null}
+                    </div>
+                    <div className="text-xs ">
                         <span>
                             {formatToTimeAgo(post.created_at.toString())}
                         </span>
                     </div>
                 </div>
             </div>
+
             <h2 className="text-lg font-semibold mb-1">{post.title}</h2>
-            {post.postType === "FREE" ? (
-                <span className="inline-flex mb-3 text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
-                    자유글
-                </span>
+            {post.content ? (
+                <div className="mb-10">
+                    <LifelogViewer content={post.content} />
+                </div>
             ) : null}
-            {post.content ? <p className="mb-10">{post.content}</p> : null}
+
             <div className="flex flex-col gap-3 items-start">
                 <div className="flex items-center gap-2 text-mygray text-sm">
                     <EyeIcon className="size-5" />
-                    <span>조회 {post.views}</span>
+                    <span>{post.views}</span>
                 </div>
                 <div className="flex gap-2">
                     <LikeButton
@@ -150,6 +165,7 @@ export default async function Post({
                     ) : null}
                 </div>
             </div>
+
             <div className="flex flex-col py-7">
                 {post._count.comments !== 0 ? (
                     <span className="mb-1 text-mygray">
@@ -166,13 +182,15 @@ export default async function Post({
                                 width={28}
                                 height={28}
                                 className="size-7 rounded-full"
-                                src={comment.user.avatar!}
+                                src={
+                                    comment.user.avatar || "/default-avatar.png"
+                                }
                                 alt={comment.user.username}
                             />
                             <div className="flex flex-col">
                                 <div>
                                     <span>{comment.user.username}</span>
-                                    <span> • </span>
+                                    <span> · </span>
                                     <span className="text-xs">
                                         {formatToTimeAgo(
                                             comment.created_at.toString(),
@@ -196,6 +214,7 @@ export default async function Post({
                     </div>
                 ))}
             </div>
+
             <form
                 action={createComment.bind(null, postId)}
                 className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-screen-sm flex flex-col gap-2 border-t border-neutral-300 bg-white p-5"
@@ -206,7 +225,7 @@ export default async function Post({
                         <Input
                             name="comment"
                             required
-                            placeholder="댓글을 작성하세요"
+                            placeholder="댓글을 작성하세요."
                             type="text"
                         />
                     </div>

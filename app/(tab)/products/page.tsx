@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
-import { HeartIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,8 +39,8 @@ export default async function Products() {
                 >
                     <div className="relative size-28 overflow-hidden rounded-md">
                         <Image
-                            src={`${product.photo}`}
-                            alt={`${product.title}`}
+                            src={product.photo}
+                            alt={product.title}
                             className="object-cover"
                             fill
                         />
@@ -59,8 +59,11 @@ export default async function Products() {
                                         product.created_at.toString(),
                                     )}
                                 </span>
-                                <span>•</span>
-                                <span>조회 {product.views}</span>
+                                <span>·</span>
+                                <span className="flex items-center gap-1">
+                                    <EyeIcon className="size-4" />
+                                    {product.views}
+                                </span>
                             </div>
                             <div className="flex gap-1 items-center text-myblue">
                                 <HeartIcon className="size-4" />
@@ -79,3 +82,4 @@ export default async function Products() {
         </div>
     );
 }
+

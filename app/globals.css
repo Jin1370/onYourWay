@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui";
+@plugin "@tailwindcss/typography";
 
 @theme {
     /* --color-[이름]: [색상코드]; 형식으로 작성합니다. */
@@ -40,4 +41,68 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type="number"] {
     -moz-appearance: textfield;
+}
+
+.tiptap-editor ul,
+.tiptap-viewer ul {
+    list-style-type: disc;
+    margin-left: 1.25rem;
+    padding-left: 0.25rem;
+}
+
+.tiptap-editor ol,
+.tiptap-viewer ol {
+    list-style-type: decimal;
+    margin-left: 1.25rem;
+    padding-left: 0.25rem;
+}
+
+.tiptap-editor li,
+.tiptap-viewer li {
+    margin: 0.25rem 0;
+}
+
+.tiptap-editor p,
+.tiptap-viewer p {
+    margin-top: 0;
+    margin-bottom: 0.3rem;
+    line-height: 1.45;
+}
+
+.tiptap-editor p:last-child,
+.tiptap-viewer p:last-child {
+    margin-bottom: 0;
+}
+
+.tiptap-editor blockquote,
+.tiptap-viewer blockquote {
+    border-left: 3px solid #d4d4d8;
+    padding-left: 0.75rem;
+    color: #52525b;
+    margin: 0.5rem 0;
+    background-color: #fafafa;
+}
+
+.tiptap-editor h2,
+.tiptap-viewer h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.tiptap-editor h1,
+.tiptap-viewer h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.tiptap-editor h3,
+.tiptap-viewer h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
 }
