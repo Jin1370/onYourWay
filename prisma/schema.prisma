@@ -13,6 +13,14 @@ enum PostType {
   FREE
 }
 
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+}
+
 model User {
   id              Int              @id @default(autoincrement())
   username        String           @unique
@@ -31,6 +39,7 @@ model User {
   products        Product[]
   wishes          Wish[]
   messages        Message[]
+  schedules       ScheduleEntry[]
   interestedUnivs University[]     @relation("UserUnivInterests")
   affiliatedUniv   University?      @relation("UserAffiliatedUniv", fields: [affiliatedUnivId], references: [id])
   affiliatedUnivId Int?
@@ -149,6 +158,24 @@ model Message {
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   userId     Int
   chatRoomId String
+}
+
+model ScheduleEntry {
+  id          Int      @id @default(autoincrement())
+  courseName  String
+  classRoom   String?
+  day         Weekday
+  startMinute Int
+  endMinute   Int
+  color       String   @default("#bfdbfe")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@index([userId, day, startMinute, endMinute])
 }
 
 model University {
