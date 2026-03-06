@@ -21,13 +21,29 @@ async function getMyScheduleEntries(userId: number) {
     });
 }
 
+async function getMyUniversityTodos(userId: number) {
+    return db.universityTodo.findMany({
+        where: {
+            userId,
+        },
+        orderBy: [{ isDone: "asc" }, { created_at: "desc" }],
+        select: {
+            id: true,
+            content: true,
+            isDone: true,
+        },
+    });
+}
+
 export default async function UniversityPage() {
     const session = await getSession();
     if (!session.id) {
         redirect("/");
     }
 
-    const entries = await getMyScheduleEntries(session.id);
-    return <UniversitySchedule entries={entries} />;
+    const [entries, todos] = await Promise.all([
+        getMyScheduleEntries(session.id),
+        getMyUniversityTodos(session.id),
+    ]);
+    return <UniversitySchedule entries={entries} todos={todos} />;
 }
-

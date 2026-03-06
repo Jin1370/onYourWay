@@ -135,7 +135,15 @@ export default function LifelogEditor({
                 alert(result.error || "Image upload failed.");
                 return;
             }
-            editor?.chain().focus().setImage({ src: result.url }).run();
+            editor
+                ?.chain()
+                .focus()
+                .insertContent([
+                    { type: "image", attrs: { src: result.url } },
+                    { type: "paragraph" },
+                ])
+                .focus("end")
+                .run();
         } finally {
             setIsUploading(false);
         }

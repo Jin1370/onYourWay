@@ -40,6 +40,7 @@ model User {
   wishes          Wish[]
   messages        Message[]
   schedules       ScheduleEntry[]
+  universityTodos UniversityTodo[]
   interestedUnivs University[]     @relation("UserUnivInterests")
   affiliatedUniv   University?      @relation("UserAffiliatedUniv", fields: [affiliatedUnivId], references: [id])
   affiliatedUnivId Int?
@@ -93,6 +94,11 @@ model Product {
   views       Int      @default(0)
   price       Float
   photo       String
+  isMeetup    Boolean  @default(false)
+  isDelivery  Boolean  @default(false)
+  latitude    Float?
+  longitude   Float?
+  locationLabel String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -176,6 +182,19 @@ model ScheduleEntry {
   userId Int
 
   @@index([userId, day, startMinute, endMinute])
+}
+
+model UniversityTodo {
+  id        Int      @id @default(autoincrement())
+  content   String
+  isDone    Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@index([userId, isDone, created_at])
 }
 
 model University {

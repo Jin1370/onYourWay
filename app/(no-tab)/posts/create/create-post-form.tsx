@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
 import LifelogEditor from "@/components/lifelog-editor";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { createPost } from "./action";
 
 interface CreatePostFormProps {
@@ -18,6 +18,17 @@ export default function CreatePostForm({
 }: CreatePostFormProps) {
     const isFree = tab === "free";
     const [state, trigger] = useActionState(createPost, null);
+    const [title, setTitle] = useState("");
+    const [initialContent, setInitialContent] = useState<string | undefined>(
+        undefined,
+    );
+
+    useEffect(() => {
+        const values = (state as any)?.values;
+        if (!values) return;
+        setTitle(values.title ?? "");
+        setInitialContent(values.content ?? "");
+    }, [state]);
 
     if (!isFree && !canWriteLifelog) {
         return (
@@ -54,9 +65,15 @@ export default function CreatePostForm({
                     placeholder="제목"
                     required
                     name="title"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
                     errors={state?.fieldErrors.title}
                 />
-                <LifelogEditor name="content" errors={state?.fieldErrors.content} />
+                <LifelogEditor
+                    name="content"
+                    initialContent={initialContent}
+                    errors={state?.fieldErrors.content}
+                />
 
                 {state?.formErrors?.length ? (
                     <div className="flex flex-col gap-2">
@@ -72,4 +89,3 @@ export default function CreatePostForm({
         </div>
     );
 }
-

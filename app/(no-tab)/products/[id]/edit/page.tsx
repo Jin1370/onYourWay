@@ -21,6 +21,10 @@ export default async function EditProduct({
             title: true,
             description: true,
             price: true,
+            isMeetup: true,
+            isDelivery: true,
+            latitude: true,
+            longitude: true,
         },
     });
     if (!product) return notFound();

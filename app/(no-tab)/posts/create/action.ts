@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import db from "@/lib/db";
 import { hasLifelogContent } from "@/lib/post-content";
@@ -26,7 +26,10 @@ export async function createPost(_prevState: unknown, formData: FormData) {
 
     const result = formSchema.safeParse(data);
     if (!result.success) {
-        return result.error.flatten();
+        return {
+            ...result.error.flatten(),
+            values: data,
+        };
     }
 
     if (!hasLifelogContent(result.data.content)) {
@@ -37,6 +40,7 @@ export async function createPost(_prevState: unknown, formData: FormData) {
                 postType: [] as string[],
             },
             formErrors: [] as string[],
+            values: data,
         };
     }
 
@@ -58,6 +62,7 @@ export async function createPost(_prevState: unknown, formData: FormData) {
                 postType: [] as string[],
             },
             formErrors: ["라이프로그 작성은 해외 소속 대학 등록이 필요합니다."],
+            values: data,
         };
     }
 
@@ -73,4 +78,3 @@ export async function createPost(_prevState: unknown, formData: FormData) {
     revalidatePath("/posts");
     redirect(`/posts/${post.id}`);
 }
-

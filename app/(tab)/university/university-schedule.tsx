@@ -1,13 +1,20 @@
 "use client";
 
 import {
+    CheckIcon,
     PencilSquareIcon,
     PlusIcon,
     TrashIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useActionState, useEffect, useMemo, useState } from "react";
-import { deleteScheduleEntry, upsertScheduleEntry } from "./action";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import {
+    createUniversityTodo,
+    deleteScheduleEntry,
+    deleteUniversityTodo,
+    toggleUniversityTodo,
+    upsertScheduleEntry,
+} from "./action";
 
 type Weekday = "MON" | "TUE" | "WED" | "THU" | "FRI";
 
@@ -19,6 +26,12 @@ interface ScheduleEntry {
     startMinute: number;
     endMinute: number;
     color: string | null;
+}
+
+interface UniversityTodo {
+    id: number;
+    content: string;
+    isDone: boolean;
 }
 
 const DAYS: Weekday[] = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -50,13 +63,24 @@ function splitMinute(minute: number) {
 
 export default function UniversitySchedule({
     entries,
+    todos,
 }: {
     entries: ScheduleEntry[];
+    todos: UniversityTodo[];
 }) {
-    const [state, upsertAction] = useActionState(upsertScheduleEntry, null);
+    const [scheduleState, upsertAction] = useActionState(
+        upsertScheduleEntry,
+        null,
+    );
+    const [todoState, createTodoAction] = useActionState(
+        createUniversityTodo,
+        null,
+    );
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
     const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
+    const [isTodoInputOpen, setIsTodoInputOpen] = useState(false);
+    const todoFormRef = useRef<HTMLFormElement>(null);
 
     const selectedEntry = useMemo(
         () => entries.find((entry) => entry.id === selectedEntryId) || null,
@@ -77,17 +101,33 @@ export default function UniversitySchedule({
     const totalHourTicks = Math.floor((scheduleEndMinute - START_MINUTE) / 60);
 
     useEffect(() => {
-        if (!state) return;
+        if (!scheduleState) return;
         const hasFieldErrors =
-            !!state.fieldErrors &&
-            Object.values(state.fieldErrors).some((errors) => errors?.length);
-        const hasFormErrors = !!state.formErrors?.length;
+            !!scheduleState.fieldErrors &&
+            Object.values(scheduleState.fieldErrors).some(
+                (errors) => errors?.length,
+            );
+        const hasFormErrors = !!scheduleState.formErrors?.length;
 
         if (!hasFieldErrors && !hasFormErrors) {
             setIsModalOpen(false);
             setEditingEntryId(null);
         }
-    }, [state]);
+    }, [scheduleState]);
+
+    useEffect(() => {
+        if (!todoState) return;
+        const hasFieldErrors =
+            !!todoState.fieldErrors &&
+            Object.values(todoState.fieldErrors).some(
+                (errors) => errors?.length,
+            );
+        const hasFormErrors = !!todoState.formErrors?.length;
+        if (!hasFieldErrors && !hasFormErrors) {
+            todoFormRef.current?.reset();
+            setIsTodoInputOpen(false);
+        }
+    }, [todoState]);
 
     const defaultStart = editingEntry
         ? splitMinute(editingEntry.startMinute)
@@ -197,7 +237,7 @@ export default function UniversitySchedule({
                                             }}
                                             title={`${entry.courseName} ${minuteToText(entry.startMinute)}-${minuteToText(entry.endMinute)}`}
                                         >
-                                            <div className="font-semibold text-[11px] leading-tight line-clamp-1">
+                                            <div className="font-semibold text-[11px] text-neutral-800 leading-tight line-clamp-1">
                                                 {entry.courseName}
                                             </div>
                                             {entry.classRoom && height >= 25 ? (
@@ -213,7 +253,7 @@ export default function UniversitySchedule({
                 </div>
 
                 {selectedEntry ? (
-                    <div className="mt-8 rounded-lg border border-neutral-200 p-3 flex items-center justify-between">
+                    <div className="mt-8 rounded-lg border border-neutral-200 p-2 flex items-center justify-between">
                         <div className="text-sm">
                             <div className="font-medium">
                                 {selectedEntry.courseName}
@@ -233,10 +273,9 @@ export default function UniversitySchedule({
                                     setEditingEntryId(selectedEntry.id);
                                     setIsModalOpen(true);
                                 }}
-                                className="px-3 py-1.5 rounded-md border hover:bg-neutral-100 text-sm flex items-center gap-1"
+                                className="px-3 py-1.5 hover:text-neutral-400 flex items-center text-mygray"
                             >
                                 <PencilSquareIcon className="size-4" />
-                                수정
                             </button>
                             <form
                                 action={deleteScheduleEntry.bind(
@@ -246,15 +285,120 @@ export default function UniversitySchedule({
                             >
                                 <button
                                     type="submit"
-                                    className="px-3 py-1.5 rounded-md border hover:bg-neutral-100 text-sm flex items-center gap-1 text-red-600"
+                                    className="px-3 py-1.5 hover:text-neutral-400 flex items-center text-mygray"
                                 >
                                     <TrashIcon className="size-4" />
-                                    삭제
                                 </button>
                             </form>
                         </div>
                     </div>
                 ) : null}
+            </section>
+
+            <section className="rounded-xl border border-neutral-200 p-4">
+                <div className="flex items-center gap-3 mb-3">
+                    <h2 className="font-semibold text-base">To-do</h2>
+                    <button
+                        type="button"
+                        onClick={() => setIsTodoInputOpen((prev) => !prev)}
+                        className="size-4 text-neutral-500 border border-neutral-300 rounded-md flex items-center justify-center hover:bg-neutral-100"
+                        aria-label="할 일 입력 열기"
+                        title="할 일 입력 열기"
+                    >
+                        <PlusIcon className="size-5" />
+                    </button>
+                </div>
+                {isTodoInputOpen ? (
+                    <>
+                <form
+                    ref={todoFormRef}
+                    action={createTodoAction}
+                    noValidate
+                    className="flex items-center gap-2"
+                >
+                    <input
+                        type="text"
+                        name="content"
+                        placeholder="새 할 일을 입력하세요"
+                        className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-300"
+                    />
+                    <button
+                        type="submit"
+                        className="rounded-md bg-myblue text-white px-3 py-2 text-sm"
+                    >
+                        추가
+                    </button>
+                </form>
+                {todoState?.fieldErrors?.content?.length ? (
+                    <p className="mt-2 text-sm text-red-500">
+                        {todoState.fieldErrors.content[0]}
+                    </p>
+                ) : null}
+                {todoState?.formErrors?.length ? (
+                    <p className="mt-2 text-sm text-red-500">
+                        {todoState.formErrors[0]}
+                    </p>
+                ) : null}
+                    </>
+                ) : null}
+
+                <div className="mt-3 flex flex-col gap-2">
+                    {todos.length === 0 ? (
+                        <p className="text-sm text-neutral-400">
+                            등록된 할 일이 없습니다.
+                        </p>
+                    ) : (
+                        todos.map((todo) => (
+                            <div
+                                key={todo.id}
+                                className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"
+                            >
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <form
+                                        action={toggleUniversityTodo.bind(
+                                            null,
+                                            todo.id,
+                                        )}
+                                    >
+                                        <button
+                                            type="submit"
+                                            className={`size-5 rounded border flex items-center justify-center ${
+                                                todo.isDone
+                                                    ? "bg-myblue border-myblue text-white"
+                                                    : "bg-white border-neutral-300 text-transparent"
+                                            }`}
+                                            aria-label="할 일 완료 토글"
+                                        >
+                                            <CheckIcon className="size-3.5" />
+                                        </button>
+                                    </form>
+                                    <span
+                                        className={`text-sm truncate ${
+                                            todo.isDone
+                                                ? "text-neutral-400 line-through"
+                                                : "text-neutral-800"
+                                        }`}
+                                    >
+                                        {todo.content}
+                                    </span>
+                                </div>
+                                <form
+                                    action={deleteUniversityTodo.bind(
+                                        null,
+                                        todo.id,
+                                    )}
+                                >
+                                    <button
+                                        type="submit"
+                                        className="text-xs text-mygray hover:text-neutral-400"
+                                    >
+                                        <TrashIcon className="size-4" />
+                                    </button>
+                                </form>
+                            </div>
+                        ))
+                    )}
+                </div>
             </section>
 
             {isModalOpen ? (
@@ -384,14 +528,14 @@ export default function UniversitySchedule({
                                     </select>
                                 </div>
                             </div>
-                            {state?.fieldErrors?.courseName?.length ? (
+                            {scheduleState?.fieldErrors?.courseName?.length ? (
                                 <p className="text-sm text-red-500">
-                                    {state.fieldErrors.courseName[0]}
+                                    {scheduleState.fieldErrors.courseName[0]}
                                 </p>
                             ) : null}
-                            {state?.formErrors?.length ? (
+                            {scheduleState?.formErrors?.length ? (
                                 <p className="text-sm text-red-500">
-                                    {state.formErrors[0]}
+                                    {scheduleState.formErrors[0]}
                                 </p>
                             ) : null}
                             <button className="primary-btn">

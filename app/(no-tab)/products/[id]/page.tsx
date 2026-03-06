@@ -1,4 +1,5 @@
-import DeleteBtn from "@/components/delete-button";
+﻿import DeleteBtn from "@/components/delete-button";
+import ProductApproxLocationMap from "@/components/product-approx-location-map";
 import WishButton from "@/components/wish-button";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
@@ -139,6 +140,28 @@ export default async function Product({
             </div>
             <h2 className="text-lg font-semibold my-1">{product.title}</h2>
             <p className="mb-10">{product.description}</p>
+            <div className="mb-6 flex flex-col gap-2">
+                <div className="flex gap-2 flex-wrap">
+                    {product.isMeetup ? (
+                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                            직거래 가능
+                        </span>
+                    ) : null}
+                    {product.isDelivery ? (
+                        <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                            택배 가능
+                        </span>
+                    ) : null}
+                </div>
+                {product.latitude != null && product.longitude != null ? (
+                    <ProductApproxLocationMap
+                        productId={product.id}
+                        latitude={product.latitude}
+                        longitude={product.longitude}
+                        locationLabel={product.locationLabel}
+                    />
+                ) : null}
+            </div>
             <div className="flex flex-col gap-3 items-start">
                 <div className="flex items-center gap-2 text-mygray text-sm">
                     <EyeIcon className="size-5" />
@@ -183,4 +206,3 @@ export default async function Product({
         </div>
     );
 }
-

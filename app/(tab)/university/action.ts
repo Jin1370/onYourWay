@@ -169,3 +169,81 @@ export async function deleteScheduleEntry(entryId: number) {
 
     revalidatePath("/university");
 }
+
+const createTodoSchema = z.object({
+    content: z.string().trim().min(1, "할 일을 입력해주세요.").max(100),
+});
+
+export async function createUniversityTodo(_prevState: unknown, formData: FormData) {
+    const parsed = createTodoSchema.safeParse({
+        content: formData.get("content"),
+    });
+
+    if (!parsed.success) {
+        return parsed.error.flatten();
+    }
+
+    const session = await getSession();
+    if (!session.id) {
+        return {
+            fieldErrors: {},
+            formErrors: ["로그인이 필요합니다."],
+        };
+    }
+
+    await db.universityTodo.create({
+        data: {
+            userId: session.id,
+            content: parsed.data.content,
+        },
+    });
+
+    revalidatePath("/university");
+    return {
+        fieldErrors: {},
+        formErrors: [] as string[],
+    };
+}
+
+export async function toggleUniversityTodo(todoId: number) {
+    const session = await getSession();
+    if (!session.id) return;
+
+    const todo = await db.universityTodo.findFirst({
+        where: {
+            id: todoId,
+            userId: session.id,
+        },
+        select: {
+            id: true,
+            isDone: true,
+        },
+    });
+
+    if (!todo) return;
+
+    await db.universityTodo.update({
+        where: {
+            id: todo.id,
+        },
+        data: {
+            isDone: !todo.isDone,
+        },
+    });
+
+    revalidatePath("/university");
+}
+
+export async function deleteUniversityTodo(todoId: number) {
+    const session = await getSession();
+    if (!session.id) return;
+
+    await db.universityTodo.deleteMany({
+        where: {
+            id: todoId,
+            userId: session.id,
+        },
+    });
+
+    revalidatePath("/university");
+}

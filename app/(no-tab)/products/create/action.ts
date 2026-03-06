@@ -1,68 +1,142 @@
-"use server";
+﻿"use server";
 
 import db from "@/lib/db";
+import { getApproxLocationLabel } from "@/lib/location-label";
 import getSession from "@/lib/session";
+import fs from "fs/promises";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { z } from "zod";
-import fs from "fs/promises";
 
-export async function createProduct(prevState: any, formData: FormData) {
+const formSchema = z
+    .object({
+        photo: z.string().min(1, "사진을 업로드해주세요."),
+        title: z.string().trim().min(1, "상품명을 입력해주세요."),
+        description: z.string().trim().min(1, "설명을 입력해주세요."),
+        price: z.coerce.number().min(1, "가격을 입력해주세요."),
+        latitude: z.coerce.number().min(-90).max(90),
+        longitude: z.coerce.number().min(-180).max(180),
+        locationLabel: z.string().trim().optional().default(""),
+        isMeetup: z.boolean().optional().default(false),
+        isDelivery: z.boolean().optional().default(false),
+        dealType: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+        if (!data.isMeetup && !data.isDelivery) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "직거래/택배 중 하나 이상 선택해주세요.",
+                path: ["dealType"],
+            });
+        }
+    });
+
+function buildDefaultFieldErrors() {
+    return {
+        photo: [] as string[],
+        title: [] as string[],
+        description: [] as string[],
+        price: [] as string[],
+        latitude: [] as string[],
+        longitude: [] as string[],
+        locationLabel: [] as string[],
+        isMeetup: [] as string[],
+        isDelivery: [] as string[],
+        dealType: [] as string[],
+    };
+}
+
+function extractValues(formData: FormData) {
+    return {
+        title: String(formData.get("title") ?? ""),
+        description: String(formData.get("description") ?? ""),
+        price: String(formData.get("price") ?? ""),
+        isMeetup: formData.get("isMeetup") === "on",
+        isDelivery: formData.get("isDelivery") === "on",
+    };
+}
+
+export async function createProduct(_prevState: unknown, formData: FormData) {
     let productId: number | null = null;
+    const values = extractValues(formData);
+
     try {
-        const formSchema = z.object({
-            photo: z.string().min(1, "필수 입력 항목입니다."),
-            title: z.string().trim().min(1, "필수 입력 항목입니다."),
-            description: z.string().trim().min(1, "필수 입력 항목입니다."),
-            price: z.coerce.number().min(1, "필수 입력 항목입니다."),
-        });
+        const session = await getSession();
+        if (!session.id) {
+            return {
+                fieldErrors: buildDefaultFieldErrors(),
+                formErrors: ["로그인이 필요합니다."],
+                values,
+            };
+        }
+
+        const rawPhoto = formData.get("photo");
         const data = {
-            photo: formData.get("photo"),
+            photo: rawPhoto,
             title: formData.get("title"),
             description: formData.get("description"),
             price: formData.get("price"),
+            latitude: formData.get("latitude"),
+            longitude: formData.get("longitude"),
+            locationLabel: formData.get("locationLabel"),
+            isMeetup: formData.get("isMeetup") === "on",
+            isDelivery: formData.get("isDelivery") === "on",
+            dealType: "",
         };
-        if (data.photo instanceof File && data.photo.size > 0) {
-            const photoData = await data.photo.arrayBuffer(); //File 객체 안에 담긴 이진 데이터를 ArrayBuffer 형식으로 읽어옴
-            await fs.writeFile(
-                //실제로 파일을 서버 컴퓨터의 특정 경로에 생성하고 내용을 기록
-                `./public/${data.photo.name}`,
-                Buffer.from(photoData),
-            );
-            data.photo = `/${data.photo.name}`;
-            //data.photo = "https://blocks.astratic.com/img/general-img-portrait.png";
+
+        if (rawPhoto instanceof File && rawPhoto.size > 0) {
+            const ext = rawPhoto.name.split(".").pop() || "jpg";
+            const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const photoData = await rawPhoto.arrayBuffer();
+            await fs.writeFile(`./public/${safeName}`, Buffer.from(photoData));
+            data.photo = `/${safeName}`;
         } else {
             data.photo = "";
         }
-        const result = formSchema.safeParse(data);
-        if (!result.success) {
-            return result.error.flatten();
-        } else {
-            const session = await getSession();
-            const product = await db.product.create({
-                data: {
-                    userId: session.id!,
-                    title: result.data.title,
-                    description: result.data.description,
-                    price: result.data.price,
-                    photo: result.data.photo,
-                },
-            });
-            revalidatePath("/products");
-            productId = product.id;
+
+        const parsed = formSchema.safeParse(data);
+        if (!parsed.success) {
+            return {
+                ...parsed.error.flatten(),
+                values,
+            };
         }
-    } catch (error) {
-        console.error("createProduct failed:", error);
-        return {
-            fieldErrors: {
-                photo: [] as string[],
-                title: [] as string[],
-                description: [] as string[],
-                price: [] as string[],
+
+        const product = await db.product.create({
+            data: {
+                userId: session.id,
+                title: parsed.data.title,
+                description: parsed.data.description,
+                price: parsed.data.price,
+                photo: parsed.data.photo,
+                isMeetup: parsed.data.isMeetup,
+                isDelivery: parsed.data.isDelivery,
+                latitude: parsed.data.latitude,
+                longitude: parsed.data.longitude,
+                locationLabel:
+                    (await getApproxLocationLabel(
+                        parsed.data.latitude,
+                        parsed.data.longitude,
+                    )) ||
+                    parsed.data.locationLabel ||
+                    null,
             },
-            formErrors: [
-                "등록 중 오류가 발생했습니다. 입력값을 확인하고 다시 시도해주세요.",
-            ],
+        });
+
+        revalidatePath("/products");
+        productId = product.id;
+    } catch (error) {
+        if (isRedirectError(error)) throw error;
+        console.error("createProduct failed:", error);
+        const message =
+            error instanceof Error
+                ? `등록 중 오류: ${error.message}`
+                : "등록 중 오류가 발생했습니다. 다시 시도해주세요.";
+        return {
+            fieldErrors: buildDefaultFieldErrors(),
+            formErrors: [message],
+            values,
         };
     }
 

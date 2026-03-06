@@ -142,7 +142,14 @@ export default function ChatMessagesList({
 
     //자동 스크롤 - messages 배열이 업데이트되면 메시지 목록 맨 끝 div가 보이도록 스크롤
     const scrollEndRef = useRef<HTMLDivElement>(null);
+    const didInitialScrollRef = useRef(false);
+
     useEffect(() => {
+        if (!didInitialScrollRef.current) {
+            didInitialScrollRef.current = true;
+            scrollEndRef.current?.scrollIntoView({ behavior: "auto" });
+            return;
+        }
         scrollEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 

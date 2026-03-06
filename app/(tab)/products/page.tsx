@@ -16,6 +16,8 @@ async function getProducts() {
             views: true,
             price: true,
             photo: true,
+            isMeetup: true,
+            isDelivery: true,
             created_at: true,
             _count: {
                 select: {
@@ -49,6 +51,18 @@ export default async function Products() {
                         <h2 className="text-neutral-700 font-semibold text-lg">
                             {product.title}
                         </h2>
+                        <div className="flex gap-1">
+                            {product.isMeetup ? (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                    직거래
+                                </span>
+                            ) : null}
+                            {product.isDelivery ? (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                    택배
+                                </span>
+                            ) : null}
+                        </div>
                         <h2 className="text-neutral-700">
                             {formatToWon(product.price)}
                         </h2>
@@ -82,4 +96,3 @@ export default async function Products() {
         </div>
     );
 }
-
