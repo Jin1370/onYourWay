@@ -22,11 +22,12 @@ interface UniversitySearchPickerProps {
 }
 
 export default function UniversitySearchPicker({
-    placeholder = "대학 영문 이름을 입력하세요 (ex.Oxford)",
+    placeholder = "대학 이름을 입력하세요 (ex. Oxford)",
     renderModal,
 }: UniversitySearchPickerProps) {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<University[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [selected, setSelected] = useState<University | null>(null);
 
     useEffect(() => {
@@ -36,6 +37,7 @@ export default function UniversitySearchPicker({
         }
         const controller = new AbortController();
         const timer = setTimeout(async () => {
+            setIsLoading(true);
             try {
                 const res = await fetch(
                     `/api/universities/search?q=${encodeURIComponent(query)}`,
@@ -47,13 +49,18 @@ export default function UniversitySearchPicker({
                     setResults([]);
                     return;
                 }
-                const data = (await res.json()) as {
-                    results?: University[];
-                };
-                setResults((data.results ?? []).slice(0, 10));
+                const data = (await res.json()) as
+                    | { results?: University[] }
+                    | University[];
+                const nextResults = Array.isArray(data)
+                    ? data
+                    : (data.results ?? []);
+                setResults(nextResults.slice(0, 10));
             } catch (error) {
                 if ((error as Error).name === "AbortError") return;
                 setResults([]);
+            } finally {
+                setIsLoading(false);
             }
         }, 500);
         return () => {
@@ -73,9 +80,19 @@ export default function UniversitySearchPicker({
                     onChange={(e) => setQuery(e.target.value)}
                 />
                 <ul className="mt-2">
+                    {query.length >= 2 && results.length === 0 && !isLoading ? (
+                        <li className="p-2 text-sm text-neutral-400">
+                            검색 결과가 없습니다.
+                        </li>
+                    ) : null}
+                    {isLoading ? (
+                        <li className="p-2 text-sm text-neutral-400">
+                            검색 중...
+                        </li>
+                    ) : null}
                     {(query.length < 2 ? [] : results).map((univ, idx) => (
                         <li
-                            key={idx}
+                            key={`${univ.name}-${univ.country}-${idx}`}
                             className="p-2 hover:bg-gray-200 cursor-pointer even:bg-gray-100 text-sm"
                             onClick={() => setSelected(univ)}
                         >
@@ -89,8 +106,8 @@ export default function UniversitySearchPicker({
                 renderModal({
                     univName: selected.name,
                     country: selected.country,
-                    domain: selected.domains[0],
-                    website: selected.web_pages[0],
+                    domain: selected.domains[0] ?? "",
+                    website: selected.web_pages[0] ?? "",
                     onClose: () => setSelected(null),
                 })}
         </div>

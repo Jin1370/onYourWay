@@ -155,7 +155,7 @@ export default async function Products({
                 <Link
                     key={product.id}
                     href={`/products/${product.id}`}
-                    className="mb-5 flex gap-5 border-b border-neutral-300 pb-5 text-neutral-400 last:border-b-0 last:pb-0"
+                    className="mb-5 flex gap-5 border-b border-neutral-200 pb-5 text-neutral-400 last:border-b-0 last:pb-0"
                 >
                     <div className="relative size-28 overflow-hidden rounded-md">
                         <Image

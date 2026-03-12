@@ -1,4 +1,4 @@
-"use server";
+ï»¿"use server";
 
 import db from "@/lib/db";
 import { getUniversityDetails } from "@/lib/university-details";
@@ -53,7 +53,7 @@ export async function saveUnivInterest(univId: number) {
             },
         });
     } catch {
-        throw new Error("°ü½É ´ëÇĞÀ» Ãß°¡ÇÏ´Â µ¥ ½ÇÆĞÇß½À´Ï´Ù.");
+        throw new Error("ê´€ì‹¬ ëŒ€í•™ì„ ì¶”ê°€í•˜ëŠ” ë° ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.");
     }
     redirect("/profile");
 }

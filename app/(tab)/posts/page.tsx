@@ -80,7 +80,7 @@ export default async function Posts({
                     <Link
                         key={post.id}
                         href={`/posts/${post.id}`}
-                        className="pb-5 mb-5 border-b border-neutral-300 text-neutral-400 flex flex-col gap-2 last:pb-0 last:border-b-0"
+                        className="pb-5 mb-5 border-b border-neutral-200 text-neutral-400 flex flex-col gap-2 last:pb-0 last:border-b-0"
                     >
                         <div className="flex items-center gap-2 mb-1">
                             <Image

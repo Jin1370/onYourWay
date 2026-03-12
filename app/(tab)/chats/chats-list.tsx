@@ -121,7 +121,7 @@ export default function ChatsList({
                     <Link
                         key={chatRoom.id}
                         href={`/chats/${chatRoom.id}`}
-                        className="pb-5 mb-5 border-b border-neutral-300 text-neutral-700 flex flex-col last:border-b-0 last:pb-0"
+                        className="pb-5 mb-5 border-b border-neutral-200 text-neutral-700 flex flex-col last:border-b-0 last:pb-0"
                     >
                         <div className="flex items-center gap-5">
                             {chatRoom.type === "UNIVERSITY" ? (

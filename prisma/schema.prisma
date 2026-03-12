@@ -22,31 +22,31 @@ enum Weekday {
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
-  username        String           @unique
-  email           String?          @unique
-  password        String?
-  fcmToken        String?
-  latitude        Float?
-  longitude       Float?
+  id               Int              @id @default(autoincrement())
+  username         String           @unique
+  email            String?          @unique
+  password         String?
+  fcmToken         String?
+  latitude         Float?
+  longitude        Float?
   //phone      String?    @unique
   //github_id  String?    @unique
-  avatar          String?
-  created_at      DateTime         @default(now())
-  updated_at      DateTime         @updatedAt
+  avatar           String?
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
   //tokens     SMSToken[]
-  posts           Post[]
-  comments        PostComment[]
-  likes           PostLike[]
-  products        Product[]
-  wishes          Wish[]
-  messages        Message[]
-  schedules       ScheduleEntry[]
-  universityTodos UniversityTodo[]
-  interestedUnivs University[]     @relation("UserUnivInterests")
+  posts            Post[]
+  comments         PostComment[]
+  likes            PostLike[]
+  products         Product[]
+  wishes           Wish[]
+  messages         Message[]
+  schedules        ScheduleEntry[]
+  universityTodos  UniversityTodo[]
+  interestedUnivs  University[]     @relation("UserUnivInterests")
   affiliatedUniv   University?      @relation("UserAffiliatedUniv", fields: [affiliatedUnivId], references: [id])
   affiliatedUnivId Int?
-  chatRoomMembers ChatRoomMember[]
+  chatRoomMembers  ChatRoomMember[]
 }
 
 model Post {
@@ -90,19 +90,19 @@ model PostLike {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  views       Int      @default(0)
-  price       Float
-  photo       String
-  isMeetup    Boolean  @default(false)
-  isDelivery  Boolean  @default(false)
-  latitude    Float?
-  longitude   Float?
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String
+  views         Int      @default(0)
+  price         Float
+  photo         String
+  isMeetup      Boolean  @default(false)
+  isDelivery    Boolean  @default(false)
+  latitude      Float?
+  longitude     Float?
   locationLabel String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
@@ -169,13 +169,13 @@ model Message {
 }
 
 model ScheduleEntry {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   courseName  String
   classRoom   String?
   day         Weekday
   startMinute Int
   endMinute   Int
-  color       String   @default("#bfdbfe")
+  color       String  @default("#bfdbfe")
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -187,9 +187,9 @@ model ScheduleEntry {
 }
 
 model UniversityTodo {
-  id        Int      @id @default(autoincrement())
-  content   String
-  isDone    Boolean  @default(false)
+  id         Int      @id @default(autoincrement())
+  content    String
+  isDone     Boolean  @default(false)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -212,13 +212,11 @@ model University {
   lng            Float?
   address        String?
   photoReference String?
-  googleRating   Float?
-  googleReviews  Json?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  interestedBy User[]     @relation("UserUnivInterests")
-  affiliatedUsers User[]  @relation("UserAffiliatedUniv")
-  chatRooms    ChatRoom[]
+  interestedBy    User[]     @relation("UserUnivInterests")
+  affiliatedUsers User[]     @relation("UserAffiliatedUniv")
+  chatRooms       ChatRoom[]
 }

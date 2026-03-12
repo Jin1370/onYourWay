@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { getUniversityDetails, saveUnivInterest } from "./action";
@@ -51,7 +51,6 @@ export default function UniversityModal({
     return (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
             <div className="bg-white w-150 max-h-[80vh] overflow-y-auto rounded-xl p-6 m-5 relative">
-                {/* 닫기 버튼 */}
                 <button
                     onClick={onClose}
                     className="absolute top-3 right-3 text-gray-500 hover:text-black"
@@ -60,7 +59,7 @@ export default function UniversityModal({
                 </button>
 
                 {loading && <p>Loading...</p>}
-                {!loading && !data && <p>대학교 정보를 찾을 수 없습니다.</p>}
+                {!loading && !data && <p>대학 정보를 찾을 수 없습니다.</p>}
                 {!loading && data && (
                     <>
                         <h2 className="text-xl font-bold mb-2">{data.name}</h2>
@@ -93,7 +92,7 @@ export default function UniversityModal({
                                     rel="noopener noreferrer"
                                     className="text-myblue hover:text-blue-800 text-sm"
                                 >
-                                    🌐 공식 웹사이트 이동 &gt; {website}
+                                    공식 홈페이지 이동 &gt; {website}
                                 </a>
                             </div>
                         )}
@@ -101,7 +100,7 @@ export default function UniversityModal({
                             action={saveUnivInterest.bind(null, data.id)}
                             className="primary-btn"
                         >
-                            <button>관심 학교 추가</button>
+                            <button>관심 대학 추가</button>
                         </form>
                     </>
                 )}
