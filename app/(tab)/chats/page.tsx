@@ -2,6 +2,7 @@ import db from "@/lib/db";
 import getSession from "@/lib/session";
 import ChatNotificationConsent from "@/components/chat-notification-consent";
 import ChatsList from "./chats-list";
+import { redirect } from "next/navigation";
 
 async function getChatRooms(userId: number) {
     const chatRooms = await db.chatRoom.findMany({
@@ -84,11 +85,14 @@ async function getChatRooms(userId: number) {
 
 export default async function ChatRooms() {
     const session = await getSession();
-    const chatRooms = await getChatRooms(session.id!);
+    if (!session.id) {
+        redirect("/login");
+    }
+    const chatRooms = await getChatRooms(session.id);
     return (
         <div className="flex flex-col p-5 pb-20">
             <ChatNotificationConsent />
-            <ChatsList initialChatRooms={chatRooms} userId={session.id!} />
+            <ChatsList initialChatRooms={chatRooms} userId={session.id} />
         </div>
     );
 }

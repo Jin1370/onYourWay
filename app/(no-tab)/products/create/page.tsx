@@ -64,7 +64,9 @@ export default function CreateProduct() {
                             <PhotoIcon className="w-20" />
                             <div className="text-neutral-400 text-sm">
                                 사진을 추가해주세요.
-                                <p className="text-red-500">{state?.fieldErrors.photo}</p>
+                                <p className="text-red-500">
+                                    {state?.fieldErrors.photo}
+                                </p>
                             </div>
                         </>
                     ) : null}
@@ -154,26 +156,32 @@ export default function CreateProduct() {
                             택배
                         </label>
                     </div>
-                    {state?.fieldErrors?.dealType?.map((error: string, idx: number) => (
-                        <span key={idx} className="text-red-500 text-sm">
-                            {error}
-                        </span>
-                    ))}
+                    {state?.fieldErrors?.dealType?.map(
+                        (error: string, idx: number) => (
+                            <span key={idx} className="text-red-500 text-sm">
+                                {error}
+                            </span>
+                        ),
+                    )}
                 </div>
 
                 <div className="mt-2">
                     <ProductLocationPicker />
                 </div>
-                {state?.fieldErrors?.latitude?.map((error: string, idx: number) => (
-                    <span key={idx} className="text-red-500 text-sm">
-                        {error}
-                    </span>
-                ))}
-                {state?.fieldErrors?.longitude?.map((error: string, idx: number) => (
-                    <span key={idx} className="text-red-500 text-sm">
-                        {error}
-                    </span>
-                ))}
+                {state?.fieldErrors?.latitude?.map(
+                    (error: string, idx: number) => (
+                        <span key={idx} className="text-red-500 text-sm">
+                            {error}
+                        </span>
+                    ),
+                )}
+                {state?.fieldErrors?.longitude?.map(
+                    (error: string, idx: number) => (
+                        <span key={idx} className="text-red-500 text-sm">
+                            {error}
+                        </span>
+                    ),
+                )}
 
                 {state?.formErrors?.length ? (
                     <div className="flex flex-col gap-2">

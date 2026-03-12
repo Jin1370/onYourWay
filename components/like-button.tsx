@@ -20,7 +20,7 @@ export default function LikeButton({
     //두번째 인자: 데이터 수정 함수 (이전 상태, 핵심 데이터)
     const [state, toggleFn] = useOptimistic(
         { isLiked, likeCount },
-        (previousState, payload) => {
+        (previousState) => {
             return {
                 isLiked: !previousState.isLiked,
                 likeCount: previousState.isLiked

@@ -65,7 +65,7 @@ export async function saveMessage(content: string, chatRoomId: string) {
     await db.message.create({
         data: {
             content: trimmedContent,
-            userId: session.id!,
+            userId: session.id,
             chatRoomId,
         },
     });

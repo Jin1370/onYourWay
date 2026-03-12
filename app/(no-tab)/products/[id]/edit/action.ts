@@ -57,6 +57,19 @@ function extractValues(formData: FormData) {
     };
 }
 
+const allowedImageTypes = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+]);
+const extMap: Record<string, string> = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+};
+
 export async function updateProduct(
     productId: number,
     _prevState: unknown,
@@ -88,12 +101,51 @@ export async function updateProduct(
             dealType: "",
         };
 
+        const existingProduct = await db.product.findUnique({
+            where: {
+                id: productId,
+            },
+            select: {
+                userId: true,
+                latitude: true,
+                longitude: true,
+                locationLabel: true,
+            },
+        });
+        if (!existingProduct || existingProduct.userId !== session.id) {
+            return {
+                fieldErrors: buildDefaultFieldErrors(),
+                formErrors: ["수정 권한이 없습니다."],
+                values,
+            };
+        }
+
         if (rawPhoto instanceof File && rawPhoto.size > 0) {
-            const ext = rawPhoto.name.split(".").pop() || "jpg";
-            const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            if (!allowedImageTypes.has(rawPhoto.type)) {
+                return {
+                    fieldErrors: buildDefaultFieldErrors(),
+                    formErrors: [
+                        "이미지는 jpg, png, webp, gif 형식만 가능합니다.",
+                    ],
+                    values,
+                };
+            }
+            if (rawPhoto.size > 3 * 1024 * 1024) {
+                return {
+                    fieldErrors: buildDefaultFieldErrors(),
+                    formErrors: ["이미지는 3MB 이하만 가능합니다."],
+                    values,
+                };
+            }
+            const ext = extMap[rawPhoto.type] ?? ".jpg";
+            const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
             const photoData = await rawPhoto.arrayBuffer();
-            await fs.writeFile(`./public/${safeName}`, Buffer.from(photoData));
-            data.photo = `/${safeName}`;
+            await fs.mkdir("./public/uploads/products", { recursive: true });
+            await fs.writeFile(
+                `./public/uploads/products/${safeName}`,
+                Buffer.from(photoData),
+            );
+            data.photo = `/uploads/products/${safeName}`;
         } else {
             data.photo = String(prevPhoto ?? "");
         }
@@ -105,17 +157,6 @@ export async function updateProduct(
                 values,
             };
         }
-
-        const existingProduct = await db.product.findUnique({
-            where: {
-                id: productId,
-            },
-            select: {
-                latitude: true,
-                longitude: true,
-                locationLabel: true,
-            },
-        });
 
         const isSameLocation =
             existingProduct?.latitude === parsed.data.latitude &&

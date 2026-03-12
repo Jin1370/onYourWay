@@ -149,7 +149,7 @@ export default async function Posts({
 
             <Link
                 href={`/posts/create?tab=${currentTab}`}
-                className="fixed bottom-20 right-10 size-15 text-myblue hover:text-myblue/80 transition-colors bg-white bg-clip-text"
+                className="fixed bottom-20 right-10 size-15 text-myblue hover:text-myblue/80 transition-colors"
             >
                 <PlusCircleIcon />
             </Link>

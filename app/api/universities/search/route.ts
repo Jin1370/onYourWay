@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         const response = await fetch(
-            `http://universities.hipolabs.com/search?name=${encodeURIComponent(q)}`,
+            `https://universities.hipolabs.com/search?name=${encodeURIComponent(q)}`,
             {
                 signal: controller.signal,
                 cache: "no-store",
@@ -38,4 +38,3 @@ export async function GET(request: Request) {
         return NextResponse.json({ results: [] }, { status: 200 });
     }
 }
-

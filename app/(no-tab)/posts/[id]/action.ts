@@ -6,21 +6,27 @@ import { revalidatePath } from "next/cache";
 
 export async function likePost(postId: number) {
     const session = await getSession();
+    if (!session.id) {
+        return;
+    }
     await db.postLike.create({
         data: {
             postId,
-            userId: session.id!,
+            userId: session.id,
         },
     });
     revalidatePath(`/posts/${postId}`);
 }
 export async function dislikePost(postId: number) {
     const session = await getSession();
+    if (!session.id) {
+        return;
+    }
     await db.postLike.delete({
         where: {
             id: {
                 postId,
-                userId: session.id!,
+                userId: session.id,
             },
         },
     });
@@ -33,10 +39,13 @@ export async function createComment(postId: number, formData: FormData) {
         return;
     }
     const session = await getSession();
+    if (!session.id) {
+        return;
+    }
     await db.postComment.create({
         data: {
             content,
-            userId: session.id!,
+            userId: session.id,
             postId,
         },
     });

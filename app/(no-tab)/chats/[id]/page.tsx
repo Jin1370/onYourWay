@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import getSession from "@/lib/session";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ChatMessagesList from "../chat-messages-list";
 import ChatNotificationConsent from "@/components/chat-notification-consent";
 
@@ -102,7 +102,10 @@ export default async function Chat({
     }
     const initialMessages = await getMessages(chatRoom.id);
     const session = await getSession();
-    await markAsRead(chatRoom.id, session.id!);
+    if (!session.id) {
+        redirect("/login");
+    }
+    await markAsRead(chatRoom.id, session.id);
     const user = await getUserProfile();
     if (!user) {
         return notFound();
@@ -118,7 +121,7 @@ export default async function Chat({
             <ChatMessagesList
                 chatRoomId={id}
                 participants={participants}
-                userId={session.id!}
+                userId={session.id}
                 username={user.username}
                 avatar={user.avatar!}
                 initialMessages={initialMessages}

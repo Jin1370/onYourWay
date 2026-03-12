@@ -23,7 +23,7 @@ export default function WishButton({
     //두번째 인자: 데이터 수정 함수 (이전 상태, 핵심 데이터)
     const [state, toggleFn] = useOptimistic(
         { isWished, wishCount },
-        (previousState, payload) => {
+        (previousState) => {
             return {
                 isWished: !previousState.isWished,
                 wishCount: previousState.isWished

@@ -7,9 +7,12 @@ import { redirect } from "next/navigation";
 
 export async function saveAffiliatedUniv(univId: number) {
     const session = await getSession();
+    if (!session.id) {
+        redirect("/login");
+    }
     await db.user.update({
         where: {
-            id: session.id!,
+            id: session.id,
         },
         data: {
             affiliatedUnivId: univId,
@@ -40,13 +43,13 @@ export async function saveAffiliatedUniv(univId: number) {
     await db.chatRoomMember.upsert({
         where: {
             userId_chatRoomId: {
-                userId: session.id!,
+                userId: session.id,
                 chatRoomId: chatRoom.id,
             },
         },
         update: {},
         create: {
-            userId: session.id!,
+            userId: session.id,
             chatRoomId: chatRoom.id,
         },
     });

@@ -2,6 +2,7 @@
 
 import db from "@/lib/db";
 import { hasLifelogContent } from "@/lib/post-content";
+import getSession from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -11,6 +12,17 @@ export async function updatePost(
     _prevState: unknown,
     formData: FormData,
 ) {
+    const session = await getSession();
+    if (!session.id) {
+        return {
+            formErrors: ["로그인이 필요합니다."],
+            fieldErrors: {
+                title: [] as string[],
+                content: [] as string[],
+                postType: [] as string[],
+            },
+        };
+    }
     const rawPostType = formData.get("postType");
     const rawTitle = formData.get("title");
     const rawContent = formData.get("content");
@@ -42,6 +54,25 @@ export async function updatePost(
         };
     }
 
+    const existingPost = await db.post.findUnique({
+        where: {
+            id: postId,
+        },
+        select: {
+            userId: true,
+        },
+    });
+    if (!existingPost || existingPost.userId !== session.id) {
+        return {
+            formErrors: ["수정 권한이 없습니다."],
+            fieldErrors: {
+                title: [] as string[],
+                content: [] as string[],
+                postType: [] as string[],
+            },
+        };
+    }
+
     const post = await db.post.update({
         where: {
             id: postId,
@@ -55,4 +86,3 @@ export async function updatePost(
     revalidatePath("/posts");
     redirect(`/posts/${post.id}`);
 }
-

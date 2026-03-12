@@ -51,6 +51,9 @@ async function getIsWished(productId: number, userId: number) {
 const createChatRoom = async (sellerId: number, productId: number) => {
     "use server";
     const session = await getSession();
+    if (!session.id) {
+        redirect("/login");
+    }
     const existingChatRoom = await db.chatRoom.findFirst({
         where: {
             productId,
@@ -58,7 +61,7 @@ const createChatRoom = async (sellerId: number, productId: number) => {
             members: {
                 every: {
                     userId: {
-                        in: [sellerId, session.id!],
+                        in: [sellerId, session.id],
                     },
                 },
             },
@@ -74,7 +77,7 @@ const createChatRoom = async (sellerId: number, productId: number) => {
             type: "DIRECT",
             productId,
             members: {
-                create: [{ userId: sellerId }, { userId: session.id! }],
+                create: [{ userId: sellerId }, { userId: session.id }],
             },
         },
         select: {
@@ -97,10 +100,17 @@ export default async function Product({
     if (!product) return notFound();
 
     const session = await getSession();
-    const isWished = await getIsWished(productId, session.id!);
+    if (!session.id) {
+        redirect("/login");
+    }
+    const isWished = await getIsWished(productId, session.id);
 
     async function deleteProduct() {
         "use server";
+        const session = await getSession();
+        if (!session.id || session.id !== product.userId) {
+            return;
+        }
         await db.product.delete({
             where: {
                 id: product.id,

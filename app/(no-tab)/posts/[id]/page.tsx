@@ -92,10 +92,17 @@ export default async function Post({
     const comments = await getComments(postId);
 
     const session = await getSession();
-    const isLiked = await getIsLiked(postId, session.id!);
+    if (!session.id) {
+        redirect("/login");
+    }
+    const isLiked = await getIsLiked(postId, session.id);
 
     async function deletePost() {
         "use server";
+        const session = await getSession();
+        if (!session.id || session.id !== post.userId) {
+            return;
+        }
         await db.post.delete({
             where: {
                 id: post.id,
@@ -126,7 +133,7 @@ export default async function Post({
                             </span>
                         ) : null}
                     </div>
-                    <div className="text-xs ">
+                    <div className="text-xs mt-0.5">
                         <span>
                             {formatToTimeAgo(post.created_at.toString())}
                         </span>

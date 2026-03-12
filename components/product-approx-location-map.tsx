@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
-declare global {
-    interface Window {
-        google?: any;
-    }
-}
+type GoogleWindow = Window & {
+    google?: {
+        maps?: any;
+    };
+};
 
 type LatLng = {
     lat: number;
@@ -17,7 +17,7 @@ let googleMapsPromise: Promise<void> | null = null;
 
 function loadGoogleMaps(apiKey: string) {
     if (typeof window === "undefined") return Promise.resolve();
-    if (window.google?.maps) return Promise.resolve();
+    if ((window as GoogleWindow).google?.maps) return Promise.resolve();
     if (googleMapsPromise) return googleMapsPromise;
 
     googleMapsPromise = new Promise<void>((resolve, reject) => {
@@ -94,18 +94,19 @@ export default function ProductApproxLocationMap({
         let cancelled = false;
         loadGoogleMaps(apiKey)
             .then(() => {
-                if (cancelled || !mapContainerRef.current || !window.google?.maps) {
+                const google = (window as GoogleWindow).google;
+                if (cancelled || !mapContainerRef.current || !google?.maps) {
                     return;
                 }
 
-                mapRef.current = new window.google.maps.Map(mapContainerRef.current, {
+                mapRef.current = new google.maps.Map(mapContainerRef.current, {
                     center,
                     zoom: 14,
                     disableDefaultUI: true,
                     zoomControl: true,
                 });
 
-                new window.google.maps.Circle({
+                new google.maps.Circle({
                     map: mapRef.current,
                     center,
                     radius,

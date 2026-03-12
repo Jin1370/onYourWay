@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getUniversityDetails, saveUnivInterest } from "./action";
-import Link from "next/link";
 
 interface UniversityModalProps {
     univName: string;
@@ -47,9 +46,7 @@ export default function UniversityModal({
         }
 
         fetchDetails();
-    }, [univName, country]);
-
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    }, [univName, country, domain, website]);
 
     return (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">

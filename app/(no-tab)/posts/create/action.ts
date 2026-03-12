@@ -45,9 +45,20 @@ export async function createPost(_prevState: unknown, formData: FormData) {
     }
 
     const session = await getSession();
+    if (!session.id) {
+        return {
+            fieldErrors: {
+                content: [] as string[],
+                title: [] as string[],
+                postType: [] as string[],
+            },
+            formErrors: ["로그인이 필요합니다."],
+            values: data,
+        };
+    }
     const user = await db.user.findUnique({
         where: {
-            id: session.id!,
+            id: session.id,
         },
         select: {
             affiliatedUnivId: true,
@@ -68,7 +79,7 @@ export async function createPost(_prevState: unknown, formData: FormData) {
 
     const post = await db.post.create({
         data: {
-            userId: session.id!,
+            userId: session.id,
             postType: result.data.postType,
             title: result.data.title,
             content: result.data.content,

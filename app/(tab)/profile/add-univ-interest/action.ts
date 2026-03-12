@@ -7,11 +7,14 @@ import { redirect } from "next/navigation";
 
 export async function saveUnivInterest(univId: number) {
     const session = await getSession();
-    let targetChatRoomId = "";
+    if (!session.id) {
+        redirect("/login");
+    }
+
     try {
         await db.user.update({
             where: {
-                id: session.id!,
+                id: session.id,
             },
             data: {
                 interestedUnivs: {
@@ -21,7 +24,7 @@ export async function saveUnivInterest(univId: number) {
                 },
             },
         });
-        //대학 채팅방이 있는지 확인, 없으면 생성
+
         let chatRoom = await db.chatRoom.findUnique({
             where: {
                 universityId: univId,
@@ -35,23 +38,22 @@ export async function saveUnivInterest(univId: number) {
                 },
             });
         }
-        targetChatRoomId = chatRoom.id;
-        //채팅방 멤버로 추가
+
         await db.chatRoomMember.upsert({
             where: {
                 userId_chatRoomId: {
-                    userId: session.id!,
+                    userId: session.id,
                     chatRoomId: chatRoom.id,
                 },
             },
-            update: {}, //이미 있다면 업데이트 할 내용 없음
+            update: {},
             create: {
-                userId: session.id!,
+                userId: session.id,
                 chatRoomId: chatRoom.id,
             },
         });
-    } catch (e) {
-        throw new Error("관심 학교를 추가하는 데 실패했습니다.");
+    } catch {
+        throw new Error("���� ������ �߰��ϴ� �� �����߽��ϴ�.");
     }
     redirect("/profile");
 }

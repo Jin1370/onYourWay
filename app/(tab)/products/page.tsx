@@ -1,12 +1,38 @@
-import db from "@/lib/db";
+﻿import db from "@/lib/db";
+import getSession from "@/lib/session";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
 import { EyeIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import ProductFilters from "./product-filters";
+import PurchaseLocationSetup from "./purchase-location-setup";
 
-async function getProducts() {
+type ProductFilter = {
+    meetup: boolean;
+    delivery: boolean;
+    radiusKm: number;
+    latitude: number;
+    longitude: number;
+};
+
+async function getProducts(filter: ProductFilter) {
+    let where:
+        | { isMeetup?: boolean; isDelivery?: boolean; OR?: object[] }
+        | undefined;
+    if (filter.meetup && filter.delivery) {
+        where = {
+            OR: [{ isMeetup: true }, { isDelivery: true }],
+        };
+    } else if (filter.meetup) {
+        where = { isMeetup: true };
+    } else if (filter.delivery) {
+        where = { isDelivery: true };
+    }
+
     const products = await db.product.findMany({
+        where,
         orderBy: {
             created_at: "desc",
         },
@@ -18,6 +44,8 @@ async function getProducts() {
             photo: true,
             isMeetup: true,
             isDelivery: true,
+            latitude: true,
+            longitude: true,
             created_at: true,
             _count: {
                 select: {
@@ -26,18 +54,108 @@ async function getProducts() {
             },
         },
     });
+
+    if (filter.radiusKm > 0) {
+        const toRad = (value: number) => (value * Math.PI) / 180;
+        const earthRadiusKm = 6371;
+        const filtered = products.filter((product) => {
+            if (
+                typeof product.latitude !== "number" ||
+                typeof product.longitude !== "number"
+            ) {
+                return false;
+            }
+            const dLat = toRad(product.latitude - filter.latitude);
+            const dLng = toRad(product.longitude - filter.longitude);
+            const lat1 = toRad(filter.latitude);
+            const lat2 = toRad(product.latitude);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1) *
+                    Math.cos(lat2) *
+                    Math.sin(dLng / 2) *
+                    Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = earthRadiusKm * c;
+            return distance <= filter.radiusKm;
+        });
+        return filtered;
+    }
+
     return products;
 }
 
-export default async function Products() {
-    const products = await getProducts();
+export default async function Products({
+    searchParams,
+}: {
+    searchParams?:
+        | { meetup?: string; delivery?: string; radius?: string }
+        | Promise<{
+              meetup?: string;
+              delivery?: string;
+              radius?: string;
+          }>;
+}) {
+    const session = await getSession();
+    if (!session.id) {
+        redirect("/login");
+    }
+
+    const user = await db.user.findUnique({
+        where: {
+            id: session.id,
+        },
+        select: {
+            latitude: true,
+            longitude: true,
+        },
+    });
+
+    const latitude = user?.latitude;
+    const longitude = user?.longitude;
+    if (typeof latitude !== "number" || typeof longitude !== "number") {
+        return (
+            <div className="p-5 pb-20">
+                <div className="rounded-xl border border-red-50 bg-red-50 p-4 text-sm text-red-500">
+                    구매 위치를 설정해야 상품을 볼 수 있습니다.
+                </div>
+                <PurchaseLocationSetup />
+            </div>
+        );
+    }
+
+    const resolved =
+        searchParams &&
+        typeof (searchParams as Promise<unknown>).then === "function"
+            ? await searchParams
+            : (searchParams as
+                  | {
+                        meetup?: string;
+                        delivery?: string;
+                        radius?: string;
+                    }
+                  | undefined);
+
+    const filter = {
+        meetup: resolved?.meetup === "1",
+        delivery: resolved?.delivery === "1",
+        radiusKm: Number(resolved?.radius ?? "0") || 0,
+        latitude,
+        longitude,
+    };
+
+    const products = await getProducts(filter);
     return (
         <div className="p-5 pb-20">
+            <ProductFilters
+                defaultLatitude={latitude}
+                defaultLongitude={longitude}
+            />
             {products.map((product) => (
                 <Link
                     key={product.id}
                     href={`/products/${product.id}`}
-                    className="pb-5 mb-5 border-b border-neutral-300 text-neutral-400 flex gap-5 last:pb-0 last:border-b-0"
+                    className="mb-5 flex gap-5 border-b border-neutral-300 pb-5 text-neutral-400 last:border-b-0 last:pb-0"
                 >
                     <div className="relative size-28 overflow-hidden rounded-md">
                         <Image
@@ -47,18 +165,18 @@ export default async function Products() {
                             fill
                         />
                     </div>
-                    <div className="flex flex-col flex-1 gap-2">
-                        <h2 className="text-neutral-700 font-semibold text-lg">
+                    <div className="flex flex-1 flex-col gap-2">
+                        <h2 className="text-lg font-semibold text-neutral-700">
                             {product.title}
                         </h2>
                         <div className="flex gap-1">
                             {product.isMeetup ? (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-700">
                                     직거래
                                 </span>
                             ) : null}
                             {product.isDelivery ? (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
                                     택배
                                 </span>
                             ) : null}
@@ -66,8 +184,8 @@ export default async function Products() {
                         <h2 className="text-neutral-700">
                             {formatToWon(product.price)}
                         </h2>
-                        <div className="flex justify-between items-center text-sm">
-                            <div className="flex gap-4 items-center">
+                        <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-4">
                                 <span>
                                     {formatToTimeAgo(
                                         product.created_at.toString(),
@@ -79,7 +197,7 @@ export default async function Products() {
                                     {product.views}
                                 </span>
                             </div>
-                            <div className="flex gap-1 items-center text-myblue">
+                            <div className="flex items-center gap-1 text-myblue">
                                 <HeartIcon className="size-4" />
                                 {product._count.wishes}
                             </div>
@@ -89,7 +207,7 @@ export default async function Products() {
             ))}
             <Link
                 href="/products/create"
-                className="fixed bottom-20 right-10 size-15 text-myblue hover:text-myblue/80 transition-colors"
+                className="fixed bottom-20 right-10 size-15 text-myblue transition-colors hover:text-myblue/80"
             >
                 <PlusCircleIcon />
             </Link>
