@@ -92,7 +92,7 @@ export async function updateProduct(
             .filter((item): item is File => item instanceof File && item.size > 0);
         const prevPhotos = parseProductPhotos(String(formData.get("prevPhotos") ?? ""));
         const data = {
-            photos: [] as string[],
+            photos: [...prevPhotos] as string[],
             title: formData.get("title"),
             description: formData.get("description"),
             price: formData.get("price"),
@@ -110,7 +110,6 @@ export async function updateProduct(
             },
             select: {
                 userId: true,
-                photo: true,
                 latitude: true,
                 longitude: true,
                 locationLabel: true,
@@ -152,16 +151,6 @@ export async function updateProduct(
             data.photos.push(`/uploads/products/${safeName}`);
         }
 
-        if (data.photos.length === 0) {
-            const fallbackPhotos =
-                prevPhotos.length > 0
-                    ? prevPhotos
-                    : parseProductPhotos(existingProduct.photo);
-            data.photos = fallbackPhotos;
-        } else {
-            // keep only newly selected photos in edit
-        }
-
         const parsed = formSchema.safeParse(data);
         if (!parsed.success) {
             return {
@@ -171,11 +160,11 @@ export async function updateProduct(
         }
 
         const isSameLocation =
-            existingProduct?.latitude === parsed.data.latitude &&
-            existingProduct?.longitude === parsed.data.longitude;
+            existingProduct.latitude === parsed.data.latitude &&
+            existingProduct.longitude === parsed.data.longitude;
 
         const nextLocationLabel = isSameLocation
-            ? existingProduct?.locationLabel || parsed.data.locationLabel || null
+            ? existingProduct.locationLabel || parsed.data.locationLabel || null
             : (await getApproxLocationLabel(
                   parsed.data.latitude,
                   parsed.data.longitude,

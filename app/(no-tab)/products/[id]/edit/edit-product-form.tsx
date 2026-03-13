@@ -3,11 +3,11 @@
 import Button from "@/components/button";
 import Input from "@/components/input";
 import InputContent from "@/components/input-content";
-import { parseProductPhotos } from "@/lib/product-photos";
 import ProductLocationPicker from "@/components/product-location-picker";
+import { parseProductPhotos } from "@/lib/product-photos";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
-import { PhotoIcon } from "@heroicons/react/24/solid";
-import { useActionState, useEffect, useState } from "react";
+import { PlusIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { updateProduct } from "./action";
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
@@ -39,8 +39,16 @@ export default function EditProductForm({
         longitude: number | null;
     };
 }) {
-    const initialPhotos = parseProductPhotos(product.photo);
-    const [previews, setPreviews] = useState<string[]>(initialPhotos);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const initialExistingPhotos = useMemo(
+        () => parseProductPhotos(product.photo),
+        [product.photo],
+    );
+    const [existingPhotos, setExistingPhotos] = useState<string[]>(
+        initialExistingPhotos,
+    );
+    const [previews, setPreviews] = useState<string[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [state, trigger] = useActionState(
         updateProduct.bind(null, product.id),
         null,
@@ -65,6 +73,12 @@ export default function EditProductForm({
         });
     }, [state]);
 
+    useEffect(() => {
+        return () => {
+            previews.forEach((preview) => URL.revokeObjectURL(preview));
+        };
+    }, [previews]);
+
     const optimizeImageForUpload = async (file: File) => {
         if (file.type === "image/gif") return file;
         if (!file.type.startsWith("image/") || file.size === 0) return file;
@@ -77,7 +91,8 @@ export default function EditProductForm({
         try {
             await new Promise<void>((resolve, reject) => {
                 image.onload = () => resolve();
-                image.onerror = () => reject(new Error("이미지를 불러올 수 없습니다."));
+                image.onerror = () =>
+                    reject(new Error("이미지를 불러올 수 없습니다."));
             });
 
             const shouldResize =
@@ -104,7 +119,9 @@ export default function EditProductForm({
                 canvas.toBlob(resolve, "image/webp", WEBP_QUALITY);
             });
             if (!blob) return file;
-            if (blob.size >= file.size && file.size <= MAX_UPLOAD_BYTES) return file;
+            if (blob.size >= file.size && file.size <= MAX_UPLOAD_BYTES) {
+                return file;
+            }
 
             const baseName = file.name.replace(/\.[^.]+$/, "");
             return new File([blob], `${baseName}.webp`, {
@@ -116,12 +133,13 @@ export default function EditProductForm({
         }
     };
 
-    const onImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onImageChange = async (
+        event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const files = Array.from(event.target.files ?? []);
         if (files.length === 0) return;
 
         const optimizedFiles: File[] = [];
-        const nextPreviews: string[] = [];
         for (const file of files) {
             if (!file.type.startsWith("image/")) {
                 alert("이미지 파일만 업로드해주세요.");
@@ -133,65 +151,45 @@ export default function EditProductForm({
                 return;
             }
             optimizedFiles.push(optimized);
-            nextPreviews.push(URL.createObjectURL(optimized));
+        }
+
+        const mergedFiles = [...selectedFiles, ...optimizedFiles];
+        const transfer = new DataTransfer();
+        mergedFiles.forEach((file) => transfer.items.add(file));
+        event.target.files = transfer.files;
+        setSelectedFiles(mergedFiles);
+        setPreviews(mergedFiles.map((file) => URL.createObjectURL(file)));
+    };
+
+    const removeExistingPhoto = (indexToRemove: number) => {
+        setExistingPhotos((prev) =>
+            prev.filter((_, index) => index !== indexToRemove),
+        );
+    };
+
+    const removeSelectedPhoto = (indexToRemove: number) => {
+        const nextFiles = selectedFiles.filter(
+            (_, index) => index !== indexToRemove,
+        );
+        setSelectedFiles(nextFiles);
+        setPreviews(nextFiles.map((file) => URL.createObjectURL(file)));
+
+        if (!fileInputRef.current) return;
+
+        if (nextFiles.length === 0) {
+            fileInputRef.current.value = "";
+            return;
         }
 
         const transfer = new DataTransfer();
-        optimizedFiles.forEach((file) => transfer.items.add(file));
-        event.target.files = transfer.files;
-        setPreviews(nextPreviews);
+        nextFiles.forEach((file) => transfer.items.add(file));
+        fileInputRef.current.files = transfer.files;
     };
 
     return (
-        <div className="flex flex-col text-base min-h-screen py-10 px-8 gap-4">
+        <div className="flex min-h-screen flex-col gap-4 px-8 py-10 text-base">
             <h1 className="text-lg font-semibold">상품 수정</h1>
             <form action={trigger} noValidate className="flex flex-col gap-3">
-                <label
-                    htmlFor="photos"
-                    className="border-2 aspect-square flex flex-col items-center justify-center text-neutral-300 border-neutral-300 rounded-md border-dashed cursor-pointer bg-center bg-cover"
-                    style={
-                        previews.length > 0
-                            ? { backgroundImage: `url(${previews[0]})` }
-                            : undefined
-                    }
-                >
-                    {previews.length === 0 ? (
-                        <>
-                            <PhotoIcon className="w-20" />
-                            <div className="text-neutral-400 text-sm">
-                                사진을 추가해주세요. (여러 장 가능)
-                                <p className="text-red-500">
-                                    {state?.fieldErrors.photos}
-                                </p>
-                            </div>
-                        </>
-                    ) : null}
-                </label>
-                {previews.length > 0 ? (
-                    <div className="grid grid-cols-4 gap-2">
-                        {previews.map((src, index) => (
-                            <div
-                                key={`${src}-${index}`}
-                                className="aspect-square rounded-md bg-center bg-cover border border-neutral-200"
-                                style={{ backgroundImage: `url(${src})` }}
-                            />
-                        ))}
-                    </div>
-                ) : null}
-                <input
-                    onChange={onImageChange}
-                    type="file"
-                    id="photos"
-                    name="photos"
-                    multiple
-                    className="hidden"
-                />
-                <input
-                    type="hidden"
-                    name="prevPhotos"
-                    value={JSON.stringify(initialPhotos)}
-                />
-
                 <Input
                     type="text"
                     placeholder="상품명"
@@ -236,15 +234,86 @@ export default function EditProductForm({
                     leadingIcon={<BanknotesIcon className="size-4" />}
                 />
 
-                <div className="flex flex-col gap-2 mt-2">
+                <div className="pt-2">
+                    <p className="text-sm text-neutral-400">
+                        사진을 추가해주세요.
+                    </p>
+                    {state?.fieldErrors.photos?.length ? (
+                        <p className="text-sm text-red-500">
+                            {state.fieldErrors.photos[0]}
+                        </p>
+                    ) : null}
+                </div>
+
+                <div className="flex gap-2 overflow-x-auto py-2">
+                    <label
+                        htmlFor="photos"
+                        className="size-20 shrink-0 cursor-pointer rounded-md border-2 border-dashed border-neutral-300 text-neutral-400 transition hover:bg-neutral-50 flex flex-col items-center justify-center"
+                    >
+                        <PlusIcon className="size-10" />
+                    </label>
+
+                    {existingPhotos.map((src, index) => (
+                        <div
+                            key={`${src}-${index}`}
+                            className="relative size-20 shrink-0 rounded-md border border-neutral-200 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${src})` }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => removeExistingPhoto(index)}
+                                className="absolute -top-2 -right-2 rounded-full bg-white text-neutral-500 transition hover:text-red-500"
+                                aria-label="기존 사진 삭제"
+                                title="사진 삭제"
+                            >
+                                <XCircleIcon className="size-5" />
+                            </button>
+                        </div>
+                    ))}
+
+                    {previews.map((src, index) => (
+                        <div
+                            key={`${src}-${index}`}
+                            className="relative size-20 shrink-0 rounded-md border border-neutral-200 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${src})` }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => removeSelectedPhoto(index)}
+                                className="absolute -top-2 -right-2 rounded-full bg-white text-neutral-500 transition hover:text-red-500"
+                                aria-label="선택한 사진 삭제"
+                                title="사진 삭제"
+                            >
+                                <XCircleIcon className="size-5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                <input
+                    ref={fileInputRef}
+                    onChange={onImageChange}
+                    type="file"
+                    id="photos"
+                    name="photos"
+                    multiple
+                    className="hidden"
+                />
+                <input
+                    type="hidden"
+                    name="prevPhotos"
+                    value={JSON.stringify(existingPhotos)}
+                />
+
+                <div className="mt-2 flex flex-col gap-2">
                     <span className="text-sm text-neutral-500">거래 방식</span>
                     <div className="flex gap-3">
                         <label className="flex items-center gap-2 text-sm">
                             <input
                                 type="checkbox"
                                 name="isMeetup"
-                                checked={formValues.isMeetup}
                                 className="size-4"
+                                checked={formValues.isMeetup}
                                 onChange={(event) =>
                                     setFormValues((prev) => ({
                                         ...prev,
@@ -258,8 +327,8 @@ export default function EditProductForm({
                             <input
                                 type="checkbox"
                                 name="isDelivery"
-                                checked={formValues.isDelivery}
                                 className="size-4"
+                                checked={formValues.isDelivery}
                                 onChange={(event) =>
                                     setFormValues((prev) => ({
                                         ...prev,
@@ -270,11 +339,13 @@ export default function EditProductForm({
                             택배
                         </label>
                     </div>
-                    {state?.fieldErrors?.dealType?.map((error: string, idx: number) => (
-                        <span key={idx} className="text-red-500 text-sm">
-                            {error}
-                        </span>
-                    ))}
+                    {state?.fieldErrors?.dealType?.map(
+                        (error: string, idx: number) => (
+                            <span key={idx} className="text-sm text-red-500">
+                                {error}
+                            </span>
+                        ),
+                    )}
                 </div>
 
                 <div className="mt-2">
@@ -283,25 +354,31 @@ export default function EditProductForm({
                         defaultLongitude={product.longitude}
                     />
                 </div>
-                {state?.fieldErrors?.latitude?.map((error: string, idx: number) => (
-                    <span key={idx} className="text-red-500 text-sm">
-                        {error}
-                    </span>
-                ))}
-                {state?.fieldErrors?.longitude?.map((error: string, idx: number) => (
-                    <span key={idx} className="text-red-500 text-sm">
-                        {error}
-                    </span>
-                ))}
+                {state?.fieldErrors?.latitude?.map(
+                    (error: string, idx: number) => (
+                        <span key={idx} className="text-sm text-red-500">
+                            {error}
+                        </span>
+                    ),
+                )}
+                {state?.fieldErrors?.longitude?.map(
+                    (error: string, idx: number) => (
+                        <span key={idx} className="text-sm text-red-500">
+                            {error}
+                        </span>
+                    ),
+                )}
+
                 {state?.formErrors?.length ? (
                     <div className="flex flex-col gap-2">
                         {state.formErrors.map((error: string, idx: number) => (
-                            <span key={idx} className="text-red-500 text-sm">
+                            <span key={idx} className="text-sm text-red-500">
                                 {error}
                             </span>
                         ))}
                     </div>
                 ) : null}
+
                 <Button text="수정 저장" />
             </form>
         </div>

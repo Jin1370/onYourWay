@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import db from "@/lib/db";
 import { hasLifelogContent } from "@/lib/post-content";
@@ -13,16 +13,7 @@ export async function updatePost(
     formData: FormData,
 ) {
     const session = await getSession();
-    if (!session.id) {
-        return {
-            formErrors: ["로그인이 필요합니다."],
-            fieldErrors: {
-                title: [] as string[],
-                content: [] as string[],
-                postType: [] as string[],
-            },
-        };
-    }
+
     const rawPostType = formData.get("postType");
     const rawTitle = formData.get("title");
     const rawContent = formData.get("content");
@@ -39,9 +30,24 @@ export async function updatePost(
         content: typeof rawContent === "string" ? rawContent : "",
     };
 
+    if (!session.id) {
+        return {
+            formErrors: ["로그인이 필요합니다."],
+            fieldErrors: {
+                title: [] as string[],
+                content: [] as string[],
+                postType: [] as string[],
+            },
+            values: data,
+        };
+    }
+
     const result = formSchema.safeParse(data);
     if (!result.success) {
-        return result.error.flatten();
+        return {
+            ...result.error.flatten(),
+            values: data,
+        };
     }
 
     if (!hasLifelogContent(result.data.content)) {
@@ -51,6 +57,8 @@ export async function updatePost(
                 title: [] as string[],
                 postType: [] as string[],
             },
+            formErrors: [] as string[],
+            values: data,
         };
     }
 
@@ -70,6 +78,7 @@ export async function updatePost(
                 content: [] as string[],
                 postType: [] as string[],
             },
+            values: data,
         };
     }
 
