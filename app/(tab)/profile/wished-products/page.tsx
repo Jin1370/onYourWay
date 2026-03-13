@@ -43,9 +43,8 @@ export default async function WishedProductsPage() {
 
     return (
         <div className="p-5 pb-20">
-            <h1 className="text-lg font-semibold mb-4">찜한 상품</h1>
             {products.length === 0 ? (
-                <p className="text-sm text-neutral-500">
+                <p className="text-center text-sm text-neutral-500">
                     찜한 상품이 없습니다.
                 </p>
             ) : (

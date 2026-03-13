@@ -204,7 +204,7 @@ export default function ProfileSettingsForm({
                             className="inline-flex items-center gap-1 rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50"
                         >
                             <PencilSquareIcon className="size-4" />
-                            {user.affiliatedUnivName ? "수정" : "등록"}
+                            {user.affiliatedUnivName ? "변경" : "등록"}
                         </Link>
                     </div>
                 </div>

@@ -57,10 +57,9 @@ export default async function LikedPostsPage() {
 
     return (
         <div className="flex flex-col p-5 pb-20">
-            <h1 className="text-lg font-semibold mb-4">좋아요 한 포스트</h1>
             {posts.length === 0 ? (
-                <p className="text-sm text-neutral-500">
-                    좋아요 한 포스트가 없습니다.
+                <p className="text-center text-sm text-neutral-500">
+                    좋아요 누른 포스트가 없습니다.
                 </p>
             ) : (
                 posts.map((post) => {

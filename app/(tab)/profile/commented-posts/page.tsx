@@ -57,9 +57,8 @@ export default async function CommentedPostsPage() {
 
     return (
         <div className="flex flex-col p-5 pb-20">
-            <h1 className="text-lg font-semibold mb-4">댓글 단 포스트</h1>
             {posts.length === 0 ? (
-                <p className="text-sm text-neutral-500">
+                <p className="text-center text-sm text-neutral-500">
                     댓글 단 포스트가 없습니다.
                 </p>
             ) : (

@@ -31,18 +31,10 @@ export default async function MyUnivInterestsPage() {
 
     return (
         <div className="p-5 pb-20">
-            <div className="mb-4 flex items-center justify-between">
-                <h1 className="text-lg font-semibold">내 관심 대학</h1>
-                <Link
-                    href="/profile/add-univ-interest"
-                    className="rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-100"
-                >
-                    관심 대학 추가
-                </Link>
-            </div>
-
             {universities.length === 0 ? (
-                <p className="text-sm text-neutral-500">관심 대학이 없습니다.</p>
+                <p className="text-center text-sm text-neutral-500">
+                    관심 대학이 없습니다.
+                </p>
             ) : (
                 universities.map((univ) => (
                     <Link

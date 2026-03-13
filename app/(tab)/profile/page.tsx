@@ -103,7 +103,7 @@ export default async function Profile() {
                         href="/profile/liked-posts"
                         className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white px-3 py-2 hover:bg-neutral-50"
                     >
-                        <span>좋아요 한 포스트</span>
+                        <span>좋아요 누른 포스트</span>
                         <ChevronRightIcon className="size-4 text-neutral-500" />
                     </Link>
                 </div>
