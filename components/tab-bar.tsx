@@ -27,13 +27,6 @@ export default function TabBar() {
                     <OutlineGlobeAsiaAustraliaIcon className="w-7 h-7" />
                 )}
             </Link>
-            <Link href="/university">
-                {pathname === "/university" ? (
-                    <SolidAcademicCapIcon className="w-7 h-7 text-myblue" />
-                ) : (
-                    <OutlineAcademicCapIcon className="w-7 h-7" />
-                )}
-            </Link>
             <Link href="/products">
                 {pathname === "/products" ? (
                     <SolidShoppingBagIcon className="w-7 h-7 text-myblue" />
@@ -46,6 +39,13 @@ export default function TabBar() {
                     <SolidChatIcon className="w-7 h-7 text-myblue" />
                 ) : (
                     <OutlineChatIcon className="w-7 h-7" />
+                )}
+            </Link>
+            <Link href="/university">
+                {pathname === "/university" ? (
+                    <SolidAcademicCapIcon className="w-7 h-7 text-myblue" />
+                ) : (
+                    <OutlineAcademicCapIcon className="w-7 h-7" />
                 )}
             </Link>
             <Link href="/profile">

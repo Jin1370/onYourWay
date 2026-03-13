@@ -43,7 +43,8 @@ const DAY_LABELS: Record<Weekday, string> = {
     FRI: "금",
 };
 
-const START_MINUTE = 8 * 60;
+const DEFAULT_START_MINUTE = 9 * 60;
+const DEFAULT_END_MINUTE = 17 * 60;
 const PIXELS_PER_MINUTE = 0.8;
 const START_HOUR_OPTIONS = Array.from({ length: 14 }, (_, i) => i + 8);
 const END_HOUR_OPTIONS = Array.from({ length: 15 }, (_, i) => i + 8);
@@ -90,15 +91,30 @@ export default function UniversitySchedule({
         () => entries.find((entry) => entry.id === editingEntryId) || null,
         [entries, editingEntryId],
     );
+    const scheduleStartMinute = useMemo(() => {
+        if (entries.length === 0) return DEFAULT_START_MINUTE;
+        const earliestStartMinute = Math.min(
+            ...entries.map((entry) => entry.startMinute),
+        );
+        const startMinute = Math.min(
+            earliestStartMinute,
+            DEFAULT_START_MINUTE,
+        );
+        return Math.floor(startMinute / 60) * 60;
+    }, [entries]);
     const scheduleEndMinute = useMemo(() => {
-        if (entries.length === 0) return 22 * 60;
+        if (entries.length === 0) return DEFAULT_END_MINUTE;
         const latestEndMinute = Math.max(
             ...entries.map((entry) => entry.endMinute),
         );
-        return Math.max(latestEndMinute, 16 * 60);
+        const endMinute = Math.max(latestEndMinute, DEFAULT_END_MINUTE);
+        return Math.ceil(endMinute / 60) * 60;
     }, [entries]);
-    const gridHeight = (scheduleEndMinute - START_MINUTE) * PIXELS_PER_MINUTE;
-    const totalHourTicks = Math.floor((scheduleEndMinute - START_MINUTE) / 60);
+    const gridHeight =
+        (scheduleEndMinute - scheduleStartMinute) * PIXELS_PER_MINUTE;
+    const totalHourTicks = Math.floor(
+        (scheduleEndMinute - scheduleStartMinute) / 60,
+    );
 
     useEffect(() => {
         if (!scheduleState) return;
@@ -176,7 +192,7 @@ export default function UniversitySchedule({
                                         top: i * 60 * PIXELS_PER_MINUTE - 5,
                                     }}
                                 >
-                                    {String(i + START_MINUTE / 60).padStart(
+                                    {String(i + scheduleStartMinute / 60).padStart(
                                         2,
                                         "0",
                                     )}
@@ -206,7 +222,8 @@ export default function UniversitySchedule({
                                 .filter((entry) => entry.day === day)
                                 .map((entry) => {
                                     const top =
-                                        (entry.startMinute - START_MINUTE) *
+                                        (entry.startMinute -
+                                            scheduleStartMinute) *
                                         PIXELS_PER_MINUTE;
                                     const height = Math.max(
                                         (entry.endMinute - entry.startMinute) *
@@ -310,35 +327,35 @@ export default function UniversitySchedule({
                 </div>
                 {isTodoInputOpen ? (
                     <>
-                <form
-                    ref={todoFormRef}
-                    action={createTodoAction}
-                    noValidate
-                    className="flex items-center gap-2"
-                >
-                    <input
-                        type="text"
-                        name="content"
-                        placeholder="새 할 일을 입력하세요"
-                        className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-300"
-                    />
-                    <button
-                        type="submit"
-                        className="rounded-md bg-myblue text-white px-3 py-2 text-sm"
-                    >
-                        추가
-                    </button>
-                </form>
-                {todoState?.fieldErrors?.content?.length ? (
-                    <p className="mt-2 text-sm text-red-500">
-                        {todoState.fieldErrors.content[0]}
-                    </p>
-                ) : null}
-                {todoState?.formErrors?.length ? (
-                    <p className="mt-2 text-sm text-red-500">
-                        {todoState.formErrors[0]}
-                    </p>
-                ) : null}
+                        <form
+                            ref={todoFormRef}
+                            action={createTodoAction}
+                            noValidate
+                            className="flex items-center gap-2"
+                        >
+                            <input
+                                type="text"
+                                name="content"
+                                placeholder="새 할 일을 입력하세요"
+                                className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-300"
+                            />
+                            <button
+                                type="submit"
+                                className="rounded-md bg-myblue text-white px-3 py-2 text-sm"
+                            >
+                                추가
+                            </button>
+                        </form>
+                        {todoState?.fieldErrors?.content?.length ? (
+                            <p className="mt-2 text-sm text-red-500">
+                                {todoState.fieldErrors.content[0]}
+                            </p>
+                        ) : null}
+                        {todoState?.formErrors?.length ? (
+                            <p className="mt-2 text-sm text-red-500">
+                                {todoState.formErrors[0]}
+                            </p>
+                        ) : null}
                     </>
                 ) : null}
 

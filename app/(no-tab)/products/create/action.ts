@@ -2,6 +2,7 @@
 
 import db from "@/lib/db";
 import { getApproxLocationLabel } from "@/lib/location-label";
+import { stringifyProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
 import fs from "fs/promises";
 import { revalidatePath } from "next/cache";
@@ -11,7 +12,7 @@ import { z } from "zod";
 
 const formSchema = z
     .object({
-        photo: z.string().min(1, "사진을 업로드해주세요."),
+        photos: z.array(z.string()).min(1, "사진을 1장 이상 업로드해주세요."),
         title: z.string().trim().min(1, "상품명을 입력해주세요."),
         description: z.string().trim().min(1, "설명을 입력해주세요."),
         price: z.coerce.number().min(1, "가격을 입력해주세요."),
@@ -34,7 +35,7 @@ const formSchema = z
 
 function buildDefaultFieldErrors() {
     return {
-        photo: [] as string[],
+        photos: [] as string[],
         title: [] as string[],
         description: [] as string[],
         price: [] as string[],
@@ -84,9 +85,11 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
             };
         }
 
-        const rawPhoto = formData.get("photo");
+        const rawPhotos = formData
+            .getAll("photos")
+            .filter((item): item is File => item instanceof File && item.size > 0);
         const data = {
-            photo: rawPhoto,
+            photos: [] as string[],
             title: formData.get("title"),
             description: formData.get("description"),
             price: formData.get("price"),
@@ -98,7 +101,8 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
             dealType: "",
         };
 
-        if (rawPhoto instanceof File && rawPhoto.size > 0) {
+        await fs.mkdir("./public/uploads/products", { recursive: true });
+        for (const rawPhoto of rawPhotos) {
             if (!allowedImageTypes.has(rawPhoto.type)) {
                 return {
                     fieldErrors: buildDefaultFieldErrors(),
@@ -108,24 +112,22 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
                     values,
                 };
             }
-            if (rawPhoto.size > 3 * 1024 * 1024) {
+            if (rawPhoto.size > 8 * 1024 * 1024) {
                 return {
                     fieldErrors: buildDefaultFieldErrors(),
-                    formErrors: ["이미지는 3MB 이하만 가능합니다."],
+                    formErrors: ["각 이미지는 8MB 이하만 가능합니다."],
                     values,
                 };
             }
+
             const ext = extMap[rawPhoto.type] ?? ".jpg";
             const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
             const photoData = await rawPhoto.arrayBuffer();
-            await fs.mkdir("./public/uploads/products", { recursive: true });
             await fs.writeFile(
                 `./public/uploads/products/${safeName}`,
                 Buffer.from(photoData),
             );
-            data.photo = `/uploads/products/${safeName}`;
-        } else {
-            data.photo = "";
+            data.photos.push(`/uploads/products/${safeName}`);
         }
 
         const parsed = formSchema.safeParse(data);
@@ -142,7 +144,7 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
                 title: parsed.data.title,
                 description: parsed.data.description,
                 price: parsed.data.price,
-                photo: parsed.data.photo,
+                photo: stringifyProductPhotos(parsed.data.photos),
                 isMeetup: parsed.data.isMeetup,
                 isDelivery: parsed.data.isDelivery,
                 latitude: parsed.data.latitude,

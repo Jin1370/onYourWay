@@ -44,14 +44,17 @@ export async function upsertScheduleEntry(
 
     const startMinute =
         parsed.data.startHour * 60 + Number(parsed.data.startMinutePart);
-    const endMinute = parsed.data.endHour * 60 + Number(parsed.data.endMinutePart);
+    const endMinute =
+        parsed.data.endHour * 60 + Number(parsed.data.endMinutePart);
     const earliestMinute = 8 * 60;
     const latestMinute = 22 * 60;
 
     if (startMinute < earliestMinute || endMinute > latestMinute) {
         return {
             fieldErrors: {
-                endHour: ["수업 시간은 08:00~22:00 범위에서만 설정할 수 있습니다."],
+                endHour: [
+                    "수업 시간은 08:00~22:00 범위에서만 설정할 수 있습니다.",
+                ],
                 endMinutePart: [] as string[],
                 startHour: [] as string[],
                 startMinutePart: [] as string[],
@@ -174,7 +177,10 @@ const createTodoSchema = z.object({
     content: z.string().trim().min(1, "할 일을 입력해주세요.").max(100),
 });
 
-export async function createUniversityTodo(_prevState: unknown, formData: FormData) {
+export async function createUniversityTodo(
+    _prevState: unknown,
+    formData: FormData,
+) {
     const parsed = createTodoSchema.safeParse({
         content: formData.get("content"),
     });

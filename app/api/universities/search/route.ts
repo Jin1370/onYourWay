@@ -13,7 +13,9 @@ const UPSTREAM_ENDPOINTS = [
     "http://universities.hipolabs.com/search",
 ];
 
-async function fetchFromUpstream(q: string): Promise<UniversityResult[] | null> {
+async function fetchFromUpstream(
+    q: string,
+): Promise<UniversityResult[] | null> {
     for (const endpoint of UPSTREAM_ENDPOINTS) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -27,7 +29,6 @@ async function fetchFromUpstream(q: string): Promise<UniversityResult[] | null> 
             );
 
             if (!response.ok) {
-                // Upstream 장애는 폴백으로 흡수하므로 서버 로그 노이즈를 피한다.
                 continue;
             }
 

@@ -25,8 +25,11 @@ export async function POST(request: Request) {
             { status: 400 },
         );
     }
-    if (file.size > 3 * 1024 * 1024) {
-        return NextResponse.json({ error: "Image must be 3MB or less" }, { status: 400 });
+    if (file.size > 8 * 1024 * 1024) {
+        return NextResponse.json(
+            { error: "Image must be 8MB or less" },
+            { status: 400 },
+        );
     }
 
     await fs.mkdir("./public/uploads/posts", { recursive: true });

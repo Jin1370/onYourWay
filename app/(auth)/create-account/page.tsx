@@ -8,9 +8,10 @@ import { createAccount } from "./action";
 
 export default function CreateAccount() {
     const [state, trigger] = useActionState(createAccount, null);
+
     return (
         <div className="flex flex-col text-base min-h-screen py-20 px-16 gap-4">
-            <h1>정보를 입력해주세요.</h1>
+            <h1>회원가입 정보를 입력해주세요.</h1>
             <form action={trigger} noValidate className="flex flex-col gap-3">
                 <Input
                     type="text"
@@ -35,7 +36,7 @@ export default function CreateAccount() {
                 />
                 <Input
                     type="password"
-                    placeholder="비밀번호 재입력"
+                    placeholder="비밀번호 확인"
                     required
                     name="confirm_password"
                     errors={state?.fieldErrors.confirm_password}

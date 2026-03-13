@@ -49,6 +49,9 @@ function getInitialDoc(initialContent?: string): JSONContent {
 }
 
 const baseBtnClass = "px-3 py-2 rounded-md text-sm whitespace-nowrap";
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 2000;
+const WEBP_QUALITY = 0.86;
 
 export default function LifelogEditor({
     name,
@@ -109,20 +112,93 @@ export default function LifelogEditor({
     const activeClass = (isActive: boolean) =>
         `${baseBtnClass} ${isActive ? "bg-neutral-200 text-neutral-900" : "hover:bg-neutral-100"}`;
 
+    const optimizeImageForUpload = async (file: File) => {
+        if (file.type === "image/gif") {
+            return file;
+        }
+        if (
+            !file.type.startsWith("image/") ||
+            typeof window === "undefined" ||
+            file.size === 0
+        ) {
+            return file;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        const image = new window.Image();
+        image.decoding = "async";
+        image.src = objectUrl;
+
+        try {
+            await new Promise<void>((resolve, reject) => {
+                image.onload = () => resolve();
+                image.onerror = () => reject(new Error("이미지를 불러올 수 없습니다."));
+            });
+
+            const shouldResize =
+                image.width > MAX_IMAGE_DIMENSION ||
+                image.height > MAX_IMAGE_DIMENSION;
+            const shouldCompress = file.size > 2 * 1024 * 1024;
+
+            if (!shouldResize && !shouldCompress) {
+                return file;
+            }
+
+            const ratio = Math.min(
+                1,
+                MAX_IMAGE_DIMENSION / Math.max(image.width, image.height),
+            );
+            const targetWidth = Math.max(1, Math.round(image.width * ratio));
+            const targetHeight = Math.max(1, Math.round(image.height * ratio));
+
+            const canvas = document.createElement("canvas");
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            const context = canvas.getContext("2d");
+            if (!context) {
+                return file;
+            }
+
+            context.drawImage(image, 0, 0, targetWidth, targetHeight);
+            const blob = await new Promise<Blob | null>((resolve) => {
+                canvas.toBlob(resolve, "image/webp", WEBP_QUALITY);
+            });
+
+            if (!blob) {
+                return file;
+            }
+
+            if (blob.size >= file.size && file.size <= MAX_UPLOAD_BYTES) {
+                return file;
+            }
+
+            const baseName = file.name.replace(/\.[^.]+$/, "");
+            return new File([blob], `${baseName}.webp`, {
+                type: "image/webp",
+                lastModified: Date.now(),
+            });
+        } finally {
+            URL.revokeObjectURL(objectUrl);
+        }
+    };
+
     const uploadImage = async (file: File) => {
         if (!file.type.startsWith("image/")) {
-            alert("Only image files can be uploaded.");
+            alert("이미지 파일만 업로드할 수 있습니다.");
             return;
         }
-        if (file.size > 3 * 1024 * 1024) {
-            alert("Images must be 3MB or smaller.");
+        const optimizedFile = await optimizeImageForUpload(file);
+
+        if (optimizedFile.size > MAX_UPLOAD_BYTES) {
+            alert("이미지는 8MB 이하만 업로드할 수 있습니다.");
             return;
         }
 
         setIsUploading(true);
         try {
             const formData = new FormData();
-            formData.append("image", file);
+            formData.append("image", optimizedFile);
             const response = await fetch("/api/posts/image", {
                 method: "POST",
                 body: formData,
@@ -132,7 +208,7 @@ export default function LifelogEditor({
                 error?: string;
             };
             if (!response.ok || !result.url) {
-                alert(result.error || "Image upload failed.");
+                alert(result.error || "이미지 업로드에 실패했습니다.");
                 return;
             }
             editor

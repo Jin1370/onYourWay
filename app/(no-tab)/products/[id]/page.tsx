@@ -1,7 +1,9 @@
-﻿import DeleteBtn from "@/components/delete-button";
+import DeleteBtn from "@/components/delete-button";
 import ProductApproxLocationMap from "@/components/product-approx-location-map";
+import ProductPhotoCarousel from "@/components/product-photo-carousel";
 import WishButton from "@/components/wish-button";
 import db from "@/lib/db";
+import { parseProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
@@ -99,6 +101,10 @@ export default async function Product({
     const product = await getProduct(productId);
     if (!product) return notFound();
 
+    const productPhotos = parseProductPhotos(product.photo);
+    const displayPhotos =
+        productPhotos.length > 0 ? productPhotos : ["/default-avatar.png"];
+
     const session = await getSession();
     if (!session.id) {
         redirect("/login");
@@ -140,14 +146,7 @@ export default async function Product({
                     </div>
                 </div>
             </div>
-            <div className="relative aspect-square rounded-2xl overflow-hidden my-5">
-                <Image
-                    fill
-                    src={product.photo}
-                    className="object-cover"
-                    alt={product.title}
-                />
-            </div>
+            <ProductPhotoCarousel photos={displayPhotos} title={product.title} />
             <h2 className="text-lg font-semibold my-1">{product.title}</h2>
             <p className="mb-10">{product.description}</p>
             <div className="mb-6 flex flex-col gap-2">

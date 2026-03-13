@@ -25,6 +25,7 @@ model User {
   id               Int              @id @default(autoincrement())
   username         String           @unique
   email            String?          @unique
+  emailVerifiedAt  DateTime?
   password         String?
   fcmToken         String?
   latitude         Float?
@@ -47,6 +48,19 @@ model User {
   affiliatedUniv   University?      @relation("UserAffiliatedUniv", fields: [affiliatedUnivId], references: [id])
   affiliatedUnivId Int?
   chatRoomMembers  ChatRoomMember[]
+  emailVerificationTokens EmailVerificationToken[]
+}
+
+model EmailVerificationToken {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  created_at DateTime @default(now())
+
+  @@index([userId, expiresAt])
 }
 
 model Post {

@@ -2,6 +2,7 @@
 
 import db from "@/lib/db";
 import { getApproxLocationLabel } from "@/lib/location-label";
+import { parseProductPhotos, stringifyProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
 import fs from "fs/promises";
 import { revalidatePath } from "next/cache";
@@ -11,7 +12,7 @@ import { z } from "zod";
 
 const formSchema = z
     .object({
-        photo: z.string().min(1, "사진을 업로드해주세요."),
+        photos: z.array(z.string()).min(1, "사진을 1장 이상 업로드해주세요."),
         title: z.string().trim().min(1, "상품명을 입력해주세요."),
         description: z.string().trim().min(1, "설명을 입력해주세요."),
         price: z.coerce.number().min(1, "가격을 입력해주세요."),
@@ -34,7 +35,7 @@ const formSchema = z
 
 function buildDefaultFieldErrors() {
     return {
-        photo: [] as string[],
+        photos: [] as string[],
         title: [] as string[],
         description: [] as string[],
         price: [] as string[],
@@ -86,10 +87,12 @@ export async function updateProduct(
             };
         }
 
-        const rawPhoto = formData.get("photo");
-        const prevPhoto = formData.get("prevPhoto");
+        const rawPhotos = formData
+            .getAll("photos")
+            .filter((item): item is File => item instanceof File && item.size > 0);
+        const prevPhotos = parseProductPhotos(String(formData.get("prevPhotos") ?? ""));
         const data = {
-            photo: rawPhoto,
+            photos: [] as string[],
             title: formData.get("title"),
             description: formData.get("description"),
             price: formData.get("price"),
@@ -107,6 +110,7 @@ export async function updateProduct(
             },
             select: {
                 userId: true,
+                photo: true,
                 latitude: true,
                 longitude: true,
                 locationLabel: true,
@@ -120,7 +124,8 @@ export async function updateProduct(
             };
         }
 
-        if (rawPhoto instanceof File && rawPhoto.size > 0) {
+        await fs.mkdir("./public/uploads/products", { recursive: true });
+        for (const rawPhoto of rawPhotos) {
             if (!allowedImageTypes.has(rawPhoto.type)) {
                 return {
                     fieldErrors: buildDefaultFieldErrors(),
@@ -130,24 +135,31 @@ export async function updateProduct(
                     values,
                 };
             }
-            if (rawPhoto.size > 3 * 1024 * 1024) {
+            if (rawPhoto.size > 8 * 1024 * 1024) {
                 return {
                     fieldErrors: buildDefaultFieldErrors(),
-                    formErrors: ["이미지는 3MB 이하만 가능합니다."],
+                    formErrors: ["각 이미지는 8MB 이하만 가능합니다."],
                     values,
                 };
             }
             const ext = extMap[rawPhoto.type] ?? ".jpg";
             const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
             const photoData = await rawPhoto.arrayBuffer();
-            await fs.mkdir("./public/uploads/products", { recursive: true });
             await fs.writeFile(
                 `./public/uploads/products/${safeName}`,
                 Buffer.from(photoData),
             );
-            data.photo = `/uploads/products/${safeName}`;
+            data.photos.push(`/uploads/products/${safeName}`);
+        }
+
+        if (data.photos.length === 0) {
+            const fallbackPhotos =
+                prevPhotos.length > 0
+                    ? prevPhotos
+                    : parseProductPhotos(existingProduct.photo);
+            data.photos = fallbackPhotos;
         } else {
-            data.photo = String(prevPhoto ?? "");
+            // keep only newly selected photos in edit
         }
 
         const parsed = formSchema.safeParse(data);
@@ -179,7 +191,7 @@ export async function updateProduct(
                 title: parsed.data.title,
                 description: parsed.data.description,
                 price: parsed.data.price,
-                photo: parsed.data.photo,
+                photo: stringifyProductPhotos(parsed.data.photos),
                 isMeetup: parsed.data.isMeetup,
                 isDelivery: parsed.data.isDelivery,
                 latitude: parsed.data.latitude,
