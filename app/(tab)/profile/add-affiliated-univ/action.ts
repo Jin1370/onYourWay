@@ -5,7 +5,10 @@ import { getUniversityDetails } from "@/lib/university-details";
 import getSession from "@/lib/session";
 import { redirect } from "next/navigation";
 
-export async function saveAffiliatedUniv(univId: number) {
+export async function saveAffiliatedUniv(
+    univId: number,
+    returnTo?: string,
+) {
     const session = await getSession();
     if (!session.id) {
         redirect("/login");
@@ -54,6 +57,10 @@ export async function saveAffiliatedUniv(univId: number) {
         },
     });
 
-    redirect("/profile");
+    const safeReturnTo =
+        returnTo === "/profile/settings" || returnTo === "/profile"
+            ? returnTo
+            : "/profile";
+    redirect(safeReturnTo);
 }
 export { getUniversityDetails };

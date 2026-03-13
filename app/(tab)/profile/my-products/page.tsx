@@ -41,11 +41,14 @@ export default async function MyProductsPage() {
         <div className="p-5 pb-20">
             <h1 className="text-lg font-semibold mb-4">등록한 상품</h1>
             {products.length === 0 ? (
-                <p className="text-sm text-neutral-500">등록한 상품이 없습니다.</p>
+                <p className="text-sm text-neutral-500">
+                    등록한 상품이 없습니다.
+                </p>
             ) : (
                 products.map((product) => {
                     const thumbnail =
-                        parseProductPhotos(product.photo)[0] ?? "/default-avatar.png";
+                        parseProductPhotos(product.photo)[0] ??
+                        "https://blocks.astratic.com/img/user-img-small.png";
 
                     return (
                         <Link
@@ -83,7 +86,9 @@ export default async function MyProductsPage() {
                                 <div className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-4">
                                         <span>
-                                            {formatToTimeAgo(product.created_at.toString())}
+                                            {formatToTimeAgo(
+                                                product.created_at.toString(),
+                                            )}
                                         </span>
                                         <span>·</span>
                                         <span className="flex items-center gap-1">

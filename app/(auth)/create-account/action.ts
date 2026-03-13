@@ -28,7 +28,7 @@ const formSchema = z
             .trim()
             .regex(
                 /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/,
-                "영문, 숫자, 특수문자를 포함해 8자 이상 입력해주세요.",
+                "영문, 숫자, 특수문자를 포함한 8자 이상 입력해주세요.",
             ),
         confirm_password: z.string().trim().min(1, "필수 입력 항목입니다."),
     })
@@ -69,17 +69,24 @@ const formSchema = z
         path: ["confirm_password"],
     });
 
-export async function createAccount(prevState: unknown, formData: FormData) {
-    const data = {
-        username: formData.get("username"),
-        email: formData.get("email"),
-        password: formData.get("password"),
-        confirm_password: formData.get("confirm_password"),
+function extractValues(formData: FormData) {
+    return {
+        username: String(formData.get("username") ?? ""),
+        email: String(formData.get("email") ?? ""),
+        password: String(formData.get("password") ?? ""),
+        confirm_password: String(formData.get("confirm_password") ?? ""),
     };
+}
 
-    const result = await formSchema.safeParseAsync(data);
+export async function createAccount(_prevState: unknown, formData: FormData) {
+    const values = extractValues(formData);
+
+    const result = await formSchema.safeParseAsync(values);
     if (!result.success) {
-        return result.error.flatten();
+        return {
+            ...result.error.flatten(),
+            values,
+        };
     }
 
     const hashedPassword = await bcrypt.hash(result.data.password, 12);

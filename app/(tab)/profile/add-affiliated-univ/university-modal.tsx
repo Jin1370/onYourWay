@@ -8,6 +8,7 @@ interface UniversityModalProps {
     country: string;
     domain: string;
     website: string;
+    returnTo: string;
     onClose: () => void;
 }
 
@@ -25,6 +26,7 @@ export default function UniversityModal({
     country,
     domain,
     website,
+    returnTo,
     onClose,
 }: UniversityModalProps) {
     const [data, setData] = useState<UniversityFromDB | null>(null);
@@ -95,7 +97,11 @@ export default function UniversityModal({
                             </div>
                         )}
                         <form
-                            action={saveAffiliatedUniv.bind(null, data.id)}
+                            action={saveAffiliatedUniv.bind(
+                                null,
+                                data.id,
+                                returnTo,
+                            )}
                             className="primary-btn"
                         >
                             <button>해외 소속 대학 등록</button>

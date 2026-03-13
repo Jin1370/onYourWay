@@ -60,13 +60,22 @@ const createChatRoom = async (sellerId: number, productId: number) => {
         where: {
             productId,
             type: "DIRECT",
-            members: {
-                every: {
-                    userId: {
-                        in: [sellerId, session.id],
+            AND: [
+                {
+                    members: {
+                        some: {
+                            userId: sellerId,
+                        },
                     },
                 },
-            },
+                {
+                    members: {
+                        some: {
+                            userId: session.id,
+                        },
+                    },
+                },
+            ],
         },
         select: {
             id: true,
@@ -103,7 +112,9 @@ export default async function Product({
 
     const productPhotos = parseProductPhotos(product.photo);
     const displayPhotos =
-        productPhotos.length > 0 ? productPhotos : ["/default-avatar.png"];
+        productPhotos.length > 0
+            ? productPhotos
+            : ["https://blocks.astratic.com/img/user-img-small.png"];
 
     const session = await getSession();
     if (!session.id) {
@@ -132,7 +143,10 @@ export default async function Product({
                     width={28}
                     height={28}
                     className="size-7 rounded-full"
-                    src={product.user.avatar || "/default-avatar.png"}
+                    src={
+                        product.user.avatar ||
+                        "https://blocks.astratic.com/img/user-img-small.png"
+                    }
                     alt={product.user.username}
                 />
                 <div>
@@ -146,7 +160,10 @@ export default async function Product({
                     </div>
                 </div>
             </div>
-            <ProductPhotoCarousel photos={displayPhotos} title={product.title} />
+            <ProductPhotoCarousel
+                photos={displayPhotos}
+                title={product.title}
+            />
             <h2 className="text-lg font-semibold my-1">{product.title}</h2>
             <p className="mb-10">{product.description}</p>
             <div className="mb-6 flex flex-col gap-2">

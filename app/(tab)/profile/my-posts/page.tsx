@@ -55,7 +55,9 @@ export default async function MyPostsPage() {
         <div className="flex flex-col p-5 pb-20">
             <h1 className="text-lg font-semibold mb-4">작성한 포스트</h1>
             {posts.length === 0 ? (
-                <p className="text-sm text-neutral-500">작성한 포스트가 없습니다.</p>
+                <p className="text-sm text-neutral-500">
+                    작성한 포스트가 없습니다.
+                </p>
             ) : (
                 posts.map((post) => {
                     const firstImage = getLifelogFirstImage(post.content);
@@ -71,7 +73,10 @@ export default async function MyPostsPage() {
                                     width={28}
                                     height={28}
                                     className="size-7 rounded-full object-cover"
-                                    src={post.user.avatar || "/default-avatar.png"}
+                                    src={
+                                        post.user.avatar ||
+                                        "https://blocks.astratic.com/img/user-img-small.png"
+                                    }
                                     alt={post.user.username}
                                 />
                                 <div className="flex flex-col leading-tight">
@@ -87,7 +92,9 @@ export default async function MyPostsPage() {
                                         ) : null}
                                     </div>
                                     <span className="text-xs mt-0.5">
-                                        {formatToTimeAgo(post.created_at.toString())}
+                                        {formatToTimeAgo(
+                                            post.created_at.toString(),
+                                        )}
                                     </span>
                                 </div>
                             </div>

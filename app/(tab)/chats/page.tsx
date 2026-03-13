@@ -20,6 +20,11 @@ async function getChatRooms(userId: number) {
             id: true,
             created_at: true,
             type: true,
+            product: {
+                select: {
+                    title: true,
+                },
+            },
             university: {
                 select: {
                     name: true,
@@ -90,7 +95,7 @@ export default async function ChatRooms() {
     }
     const chatRooms = await getChatRooms(session.id);
     return (
-        <div className="flex flex-col p-5 pb-20">
+        <div className="flex flex-col p-5 pt-3 pb-20">
             <ChatNotificationConsent />
             <ChatsList initialChatRooms={chatRooms} userId={session.id} />
         </div>

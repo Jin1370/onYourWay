@@ -1,7 +1,9 @@
 import db from "@/lib/db";
 import getSession from "@/lib/session";
-import { AcademicCapIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import {
+    AcademicCapIcon,
+    ChevronRightIcon,
+    Cog8ToothIcon,
     GlobeAsiaAustraliaIcon,
     ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
@@ -14,6 +16,7 @@ async function getUserProfile() {
     if (!session.id) {
         return null;
     }
+
     return db.user.findUnique({
         where: {
             id: session.id,
@@ -38,13 +41,23 @@ export default async function Profile() {
     }
 
     return (
-        <div className="flex flex-col p-5 pb-20 gap-4">
-            <div className="flex items-center gap-4 p-4 mb-5 rounded-xl border border-neutral-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 p-5 pt-3 pb-20">
+            <div className="relative mb-5 flex items-center gap-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+                <Link
+                    href="/profile/settings"
+                    className="absolute top-3 right-3 text-neutral-500 hover:text-neutral-700"
+                    aria-label="프로필 설정"
+                >
+                    <Cog8ToothIcon className="size-5" />
+                </Link>
                 <Image
                     width={64}
                     height={64}
-                    className="size-16 rounded-full object-cover border border-neutral-200"
-                    src={user.avatar || "/default-avatar.png"}
+                    className="size-16 rounded-full border border-neutral-200 object-cover"
+                    src={
+                        user.avatar ||
+                        "https://blocks.astratic.com/img/user-img-small.png"
+                    }
                     alt={user.username}
                 />
                 <div className="flex flex-col gap-2">
@@ -58,27 +71,18 @@ export default async function Profile() {
                         </div>
                         <div className="flex">
                             <span className="w-15">소속대학</span>
-                            <div className="flex items-center gap-2">
-                                <span>
-                                    {user.affiliatedUniv?.name ??
-                                        "소속대학 미등록"}
-                                </span>
-                                <Link
-                                    href="/profile/add-affiliated-univ"
-                                    className="rounded-md border border-neutral-300 px-2 py-0.5 text-xs text-neutral-700 hover:bg-neutral-100"
-                                >
-                                    {user.affiliatedUniv ? "수정" : "등록하기"}
-                                </Link>
-                            </div>
+                            <span>
+                                {user.affiliatedUniv?.name ?? "소속대학 미등록"}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="text-md mb-5">
-                <p className="font-semibold text-neutral-800 mb-2 flex items-center gap-1">
+            <div className="text-md mb-3">
+                <p className="mb-2 flex items-center gap-1 font-semibold text-neutral-800">
                     포스트
-                    <GlobeAsiaAustraliaIcon className="w-4 h-4 text-neutral-500" />
+                    <GlobeAsiaAustraliaIcon className="h-4 w-4 text-neutral-500" />
                 </p>
                 <div className="flex flex-col gap-2">
                     <Link
@@ -105,10 +109,10 @@ export default async function Profile() {
                 </div>
             </div>
 
-            <div className="text-md mb-5">
-                <p className="font-semibold text-neutral-800 mb-2 flex items-center gap-1">
+            <div className="text-md mb-3">
+                <p className="mb-2 flex items-center gap-1 font-semibold text-neutral-800">
                     중고거래
-                    <ShoppingBagIcon className="w-4 h-4 text-neutral-500" />
+                    <ShoppingBagIcon className="h-4 w-4 text-neutral-500" />
                 </p>
                 <div className="flex flex-col gap-2">
                     <Link
@@ -127,10 +131,11 @@ export default async function Profile() {
                     </Link>
                 </div>
             </div>
-            <div className="text-md mb-5">
-                <p className="font-semibold text-neutral-800 mb-2 flex items-center gap-1">
+
+            <div className="text-md mb-3">
+                <p className="mb-2 flex items-center gap-1 font-semibold text-neutral-800">
                     대학
-                    <AcademicCapIcon className="w-4 h-4 text-neutral-500" />
+                    <AcademicCapIcon className="h-4 w-4 text-neutral-500" />
                 </p>
                 <div className="flex flex-col gap-2">
                     <Link

@@ -6,6 +6,8 @@ import { cookies } from "next/headers";
 //존재하지 않으면 새로 만들고, 존재하면 비밀번호를 이용해서 내용을 복호화
 interface SessionContent {
     id?: number;
+    oauthState?: string;
+    oauthNext?: string;
 }
 export default async function getSession() {
     return await getIronSession<SessionContent>(await cookies(), {
@@ -14,7 +16,7 @@ export default async function getSession() {
     });
 }
 
-export async function logIn(id: any) {
+export async function logIn(id: number) {
     const session = await getSession();
     session.id = id; //쿠키 내용 수정
     await session.save(); //쿠키 저장

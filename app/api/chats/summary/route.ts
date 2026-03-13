@@ -18,6 +18,11 @@ async function getChatRoomsSummary(userId: number) {
             id: true,
             created_at: true,
             type: true,
+            product: {
+                select: {
+                    title: true,
+                },
+            },
             university: {
                 select: {
                     name: true,

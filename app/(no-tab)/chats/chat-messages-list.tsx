@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { InitialMessages } from "./[id]/page";
+import { ArrowUpCircleIcon, UserIcon } from "@heroicons/react/24/solid";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import Image from "next/image";
-import { formatDate, formatTime } from "@/lib/utils";
-import { ArrowUpCircleIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { markAsRead, saveMessage } from "./action";
+import { InitialMessages } from "./[id]/page";
+import { formatDate, formatTime } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase-client";
 
 interface ChatMessageListProps {
@@ -16,14 +16,16 @@ interface ChatMessageListProps {
         username: string;
         avatar: string | null;
         last_read_at: string | Date;
-    }[]; //객체들의 배열
+    }[];
     userId: number;
     username: string;
     avatar: string;
     initialMessages: InitialMessages;
     chatRoomType: string;
     universityName?: string;
+    productTitle?: string;
 }
+
 export default function ChatMessagesList({
     chatRoomId,
     participants,
@@ -33,6 +35,7 @@ export default function ChatMessagesList({
     initialMessages,
     chatRoomType,
     universityName,
+    productTitle,
 }: ChatMessageListProps) {
     const [messages, setMessages] = useState(initialMessages);
     const [message, setMessage] = useState("");
@@ -40,14 +43,15 @@ export default function ChatMessagesList({
         Record<number, string>
     >(
         participants.reduce<Record<number, string>>((acc, participant) => {
-            acc[participant.id] = new Date(participant.last_read_at).toISOString();
+            acc[participant.id] = new Date(
+                participant.last_read_at,
+            ).toISOString();
             return acc;
         }, {}),
     );
 
-    //useRef(): 컴포넌트 내 여러 함수 사이에서 데이터를 저장 및 공유. 변경이 일어나도 리렌더링 없이 데이터 유지
-    // -> useEffect에서 초기화하거나 참여한 채널에 접근 가능하게 함
     const channel = useRef<RealtimeChannel>(null);
+
     const sendReadReceipt = useCallback(async () => {
         const readAt = new Date().toISOString();
         try {
@@ -64,15 +68,17 @@ export default function ChatMessagesList({
             },
         });
     }, [chatRoomId, userId]);
+
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMessage(event.target.value);
     };
+
     const onSubmit = async (event: React.SyntheticEvent) => {
-        event.preventDefault(); //페이지 새로고침 방지
-        if (!message.trim()) return; //공백 메시지 방지
+        event.preventDefault();
+        if (!message.trim()) return;
 
         const newMessage = {
-            id: Date.now(), //상관없음
+            id: Date.now(),
             content: message,
             created_at: new Date(),
             userId,
@@ -81,25 +87,20 @@ export default function ChatMessagesList({
                 avatar,
             },
         };
-        //UI 즉시 업데이트
+
         setMessages((prevMsgs) => [...prevMsgs, newMessage]);
 
-        await saveMessage(message, chatRoomId); //db에 저장
+        await saveMessage(message, chatRoomId);
 
-        //supabase 채널을 통해 이 방에 접속 중인 다른 사람들에게 메시지 보냈다고 방송(Broadcast)
-        //내가 보낸 메시지를 실시간으로 낚아채서 상대방 브라우저에게 메시지를 그리라고 전달
-        //이게 없으면 상대방은 새로고침하지 않는 이상 메시지를 볼 수 없음
         channel.current?.send({
             type: "broadcast",
-            event: "message", //이벤트 이름 지정
+            event: "message",
             payload: newMessage,
         });
 
-        setMessage(""); //입력창 비우기
+        setMessage("");
     };
 
-    //supabase https://supabase.com/docs/guides/realtime/broadcast
-    //chatRoomId가 바뀔 때마다 새로 실행
     useEffect(() => {
         const client = getSupabaseClient();
         channel.current = client.channel(`room-${chatRoomId}`);
@@ -135,12 +136,12 @@ export default function ChatMessagesList({
                     void sendReadReceipt();
                 }
             });
+
         return () => {
             channel.current?.unsubscribe();
         };
     }, [chatRoomId, sendReadReceipt, userId]);
 
-    //자동 스크롤 - messages 배열이 업데이트되면 메시지 목록 맨 끝 div가 보이도록 스크롤
     const scrollEndRef = useRef<HTMLDivElement>(null);
     const didInitialScrollRef = useRef(false);
 
@@ -159,7 +160,7 @@ export default function ChatMessagesList({
     const headerTitle =
         chatRoomType === "UNIVERSITY"
             ? `${universityName}`
-            : firstOpponent?.username || "대화 상대 없음";
+            : `${firstOpponent?.username || "알 수 없는 상대"}${productTitle ? ` (${productTitle})` : ""}`;
 
     const isSameDay = (date1: Date, date2: Date) => {
         return (
@@ -169,7 +170,8 @@ export default function ChatMessagesList({
         );
     };
 
-    const isGroupChat = chatRoomType === "UNIVERSITY" || participants.length > 2;
+    const isGroupChat =
+        chatRoomType === "UNIVERSITY" || participants.length > 2;
     const readCountsByIndex = messages.map((msg) => {
         const messageCreatedAt = new Date(msg.created_at).getTime();
         return participants.filter((participant) => {
@@ -179,6 +181,7 @@ export default function ChatMessagesList({
             return new Date(readAt).getTime() >= messageCreatedAt;
         }).length;
     });
+
     let lastOtherMessageIndex = -1;
     for (let i = messages.length - 1; i >= 0; i--) {
         if (messages[i].userId !== userId) {
@@ -186,6 +189,7 @@ export default function ChatMessagesList({
             break;
         }
     }
+
     let readLabelTargetIndex = -1;
     for (let i = messages.length - 1; i > lastOtherMessageIndex; i--) {
         if (messages[i].userId === userId && readCountsByIndex[i] > 0) {
@@ -195,15 +199,18 @@ export default function ChatMessagesList({
     }
 
     return (
-        <div className="flex flex-col h-dvh bg-white">
-            <div className="bg-white border-neutral-200 z-10 p-3 flex items-center gap-3 shrink-0">
+        <div className="flex h-dvh flex-col bg-white">
+            <div className="z-10 flex shrink-0 items-center gap-3 border-neutral-200 bg-white p-3">
                 {chatRoomType === "UNIVERSITY" ? (
-                    <div className="size-9 rounded-full  flex items-center justify-center bg-blue-100 text-white font-bold text-lg">
-                        🏛️
+                    <div className="flex size-9 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-white">
+                        🌍
                     </div>
                 ) : (
                     <Image
-                        src={firstOpponent?.avatar || "/default-avatar.png"}
+                        src={
+                            firstOpponent?.avatar ||
+                            "https://blocks.astratic.com/img/user-img-small.png"
+                        }
                         alt={headerTitle}
                         width={50}
                         height={50}
@@ -211,19 +218,20 @@ export default function ChatMessagesList({
                     />
                 )}
                 <div className="flex flex-col gap-2">
-                    <span className="font-semibold text-lg leading-none">
+                    <span className="text-lg font-semibold leading-none">
                         {headerTitle}
                     </span>
-                    {chatRoomType === "UNIVERSITY" && (
-                        <span className="text-xs text-mygray">
-                            접속 중인 유저 {participants.length}명
+                    {chatRoomType === "UNIVERSITY" ? (
+                        <span className="inline-flex items-center gap-0.5 text-sm text-neutral-400">
+                            <UserIcon className="size-3.5" />
+                            {participants.length}
                         </span>
-                    )}
+                    ) : null}
                 </div>
             </div>
-            <div className="flex flex-col flex-1 overflow-y-auto gap-1 p-5">
-                {/* 메시지가 몇 개 없을 때, 아래에 붙게 하기 위함 */}
-                <div className="flex-1" />{" "}
+
+            <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-5">
+                <div className="flex-1" />
                 {messages.map((message, idx) => {
                     const isMine = message.userId === userId;
                     const currentTime = formatTime(
@@ -231,7 +239,6 @@ export default function ChatMessagesList({
                     );
                     const readCount = readCountsByIndex[idx];
 
-                    // 같은 분 내의 연속된 메시지 처리 로직
                     const nextMessage = messages[idx + 1];
                     const isLastInGroup =
                         !nextMessage ||
@@ -251,7 +258,8 @@ export default function ChatMessagesList({
                         );
                     const shouldShowAvatar =
                         !isMine && (isFirstInGroup || isFirstMessageOfDay);
-                    const showReadLabel = isMine && idx === readLabelTargetIndex;
+                    const showReadLabel =
+                        isMine && idx === readLabelTargetIndex;
                     const maxReadCount = Math.max(participants.length - 1, 0);
                     const readLabel = isGroupChat
                         ? readCount === maxReadCount
@@ -261,8 +269,8 @@ export default function ChatMessagesList({
 
                     return (
                         <div key={message.id}>
-                            {isFirstMessageOfDay && (
-                                <div className="flex items-center w-full my-5">
+                            {isFirstMessageOfDay ? (
+                                <div className="my-5 flex w-full items-center">
                                     <div className="flex-1 border-t border-neutral-400" />
                                     <span className="px-4 text-sm text-mygray">
                                         {formatDate(
@@ -271,49 +279,48 @@ export default function ChatMessagesList({
                                     </span>
                                     <div className="flex-1 border-t border-neutral-400" />
                                 </div>
-                            )}
+                            ) : null}
                             <div
-                                className={`flex gap-2 items-start ${isMine ? "justify-end" : "justify-start"}`}
+                                className={`flex items-start gap-2 ${isMine ? "justify-end" : "justify-start"}`}
                             >
                                 {shouldShowAvatar ? (
                                     <Image
                                         src={
                                             message.user.avatar ||
-                                            "/default-avatar.png"
+                                            "https://blocks.astratic.com/img/user-img-small.png"
                                         }
                                         alt={message.user.username}
                                         width={50}
                                         height={50}
                                         className="size-8 rounded-full object-cover"
                                     />
-                                ) : (
-                                    !isMine && <div className="size-8" />
-                                )}
+                                ) : !isMine ? (
+                                    <div className="size-8" />
+                                ) : null}
                                 <div
-                                    className={`flex flex-col max-w-[80%] ${isMine ? "items-end" : "items-start"} ${nextMessage && nextMessage.userId !== message.userId ? "mb-5" : ""}`}
+                                    className={`flex max-w-[80%] flex-col ${isMine ? "items-end" : "items-start"} ${nextMessage && nextMessage.userId !== message.userId ? "mb-5" : ""}`}
                                 >
                                     {!isMine &&
-                                        (isFirstInGroup ||
-                                            isFirstMessageOfDay) &&
-                                        chatRoomType === "UNIVERSITY" && (
-                                            <span className="text-xs text-mygray mb-1 ml-1">
-                                                {message.user.username}
-                                            </span>
-                                        )}
+                                    (isFirstInGroup || isFirstMessageOfDay) &&
+                                    chatRoomType === "UNIVERSITY" ? (
+                                        <span className="mb-1 ml-1 text-xs text-mygray">
+                                            {message.user.username}
+                                        </span>
+                                    ) : null}
                                     <div
                                         className={`flex items-end gap-1 ${isMine ? "flex-row-reverse" : "flex-row"}`}
                                     >
                                         <div
-                                            className={`${isMine ? "bg-neutral-200" : "bg-myblue text-white"} py-1.5 px-3 rounded-2xl break-all`}
+                                            className={`${isMine ? "bg-neutral-200" : "bg-myblue text-white"} break-all rounded-2xl px-3 py-1.5`}
                                         >
                                             {message.content}
                                         </div>
-                                        {(isLastInGroup || showReadLabel) && (
+                                        {isLastInGroup || showReadLabel ? (
                                             <div
-                                                className={`shrink-0 flex flex-col ${isMine ? "items-end" : "items-start"}`}
+                                                className={`shrink-0 ${isMine ? "items-end" : "items-start"} flex flex-col`}
                                             >
                                                 {showReadLabel ? (
-                                                    <span className="text-[10px] text-mygray leading-none mb-1">
+                                                    <span className="mb-1 text-[10px] leading-none text-mygray">
                                                         {readLabel}
                                                     </span>
                                                 ) : null}
@@ -323,7 +330,7 @@ export default function ChatMessagesList({
                                                     </span>
                                                 ) : null}
                                             </div>
-                                        )}
+                                        ) : null}
                                     </div>
                                 </div>
                             </div>
@@ -332,16 +339,17 @@ export default function ChatMessagesList({
                 })}
                 <div ref={scrollEndRef} />
             </div>
-            <form className="p-4 bg-white" onSubmit={onSubmit}>
+
+            <form className="bg-white p-4" onSubmit={onSubmit}>
                 <div className="relative flex items-center">
                     <input
                         required
                         onChange={onChange}
                         value={message}
-                        className="rounded-full w-full h-10 focus:outline-none px-5 ring-2 transition ring-neutral-200 focus:ring-neutral-400 border-none placeholder:text-neutral-400"
+                        className="h-10 w-full rounded-full border-none px-5 ring-2 ring-neutral-200 transition placeholder:text-neutral-400 focus:outline-none focus:ring-neutral-400"
                         type="text"
                         name="message"
-                        placeholder="메시지를 작성하세요."
+                        placeholder="메시지를 작성하세요"
                     />
                     <button
                         disabled={!message.trim()}

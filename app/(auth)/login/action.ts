@@ -27,19 +27,26 @@ const formSchema = z.object({
         .trim()
         .regex(
             /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/,
-            "영문, 숫자, 특수문자를 포함해 8자 이상 입력해주세요.",
+            "영문, 숫자, 특수문자를 포함한 8자 이상 입력해주세요.",
         ),
 });
 
-export async function login(prevState: unknown, formData: FormData) {
-    const data = {
-        email: formData.get("email"),
-        password: formData.get("password"),
+function extractValues(formData: FormData) {
+    return {
+        email: String(formData.get("email") ?? ""),
+        password: String(formData.get("password") ?? ""),
     };
+}
 
-    const result = await formSchema.safeParseAsync(data);
+export async function login(_prevState: unknown, formData: FormData) {
+    const values = extractValues(formData);
+
+    const result = await formSchema.safeParseAsync(values);
     if (!result.success) {
-        return result.error.flatten();
+        return {
+            ...result.error.flatten(),
+            values,
+        };
     }
 
     const user = await db.user.findUnique({
@@ -61,6 +68,8 @@ export async function login(prevState: unknown, formData: FormData) {
                 password: ["이메일 또는 비밀번호가 올바르지 않습니다."],
                 email: [],
             },
+            formErrors: [],
+            values,
         };
     }
 

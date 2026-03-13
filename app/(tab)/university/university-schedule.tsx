@@ -96,10 +96,7 @@ export default function UniversitySchedule({
         const earliestStartMinute = Math.min(
             ...entries.map((entry) => entry.startMinute),
         );
-        const startMinute = Math.min(
-            earliestStartMinute,
-            DEFAULT_START_MINUTE,
-        );
+        const startMinute = Math.min(earliestStartMinute, DEFAULT_START_MINUTE);
         return Math.floor(startMinute / 60) * 60;
     }, [entries]);
     const scheduleEndMinute = useMemo(() => {
@@ -153,7 +150,7 @@ export default function UniversitySchedule({
         : { hour: 10, minutePart: "0" as const };
 
     return (
-        <div className="p-5 pb-24 flex flex-col gap-4">
+        <div className="p-5 pt-3 pb-20 flex flex-col gap-4">
             <section className="rounded-xl border border-neutral-200 p-4">
                 <div className="flex items-center gap-3 mb-2">
                     <h1 className="font-semibold text-lg">시간표</h1>
@@ -192,10 +189,9 @@ export default function UniversitySchedule({
                                         top: i * 60 * PIXELS_PER_MINUTE - 5,
                                     }}
                                 >
-                                    {String(i + scheduleStartMinute / 60).padStart(
-                                        2,
-                                        "0",
-                                    )}
+                                    {String(
+                                        i + scheduleStartMinute / 60,
+                                    ).padStart(2, "0")}
                                 </div>
                             ),
                         )}

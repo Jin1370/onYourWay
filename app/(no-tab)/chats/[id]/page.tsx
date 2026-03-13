@@ -10,6 +10,11 @@ async function getChatRoom(chatRoomId: string) {
             id: chatRoomId,
         },
         include: {
+            product: {
+                select: {
+                    title: true,
+                },
+            },
             members: {
                 select: {
                     last_read_at: true,
@@ -127,6 +132,7 @@ export default async function Chat({
                 initialMessages={initialMessages}
                 chatRoomType={chatRoom.type}
                 universityName={chatRoom.university?.name}
+                productTitle={chatRoom.product?.title}
             />
         </>
     );

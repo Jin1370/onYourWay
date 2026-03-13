@@ -1,3 +1,4 @@
+﻿import ListSearchForm from "@/components/list-search-form";
 import db from "@/lib/db";
 import { parseProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
@@ -18,10 +19,21 @@ type ProductFilter = {
     longitude: number;
 };
 
-async function getProducts(filter: ProductFilter) {
+async function getProducts(filter: ProductFilter, keyword?: string) {
     let where:
-        | { isMeetup?: boolean; isDelivery?: boolean; OR?: object[] }
+        | {
+              isMeetup?: boolean;
+              isDelivery?: boolean;
+              OR?: Array<{
+                  isMeetup?: boolean;
+                  isDelivery?: boolean;
+                  title?: { contains: string };
+                  description?: { contains: string };
+              }>;
+              AND?: Array<object>;
+          }
         | undefined;
+
     if (filter.meetup && filter.delivery) {
         where = {
             OR: [{ isMeetup: true }, { isDelivery: true }],
@@ -30,6 +42,16 @@ async function getProducts(filter: ProductFilter) {
         where = { isMeetup: true };
     } else if (filter.delivery) {
         where = { isDelivery: true };
+    }
+
+    if (keyword) {
+        const searchWhere = {
+            OR: [
+                { title: { contains: keyword } },
+                { description: { contains: keyword } },
+            ],
+        };
+        where = where ? { AND: [where, searchWhere] } : searchWhere;
     }
 
     const products = await db.product.findMany({
@@ -90,11 +112,12 @@ export default async function Products({
     searchParams,
 }: {
     searchParams?:
-        | { meetup?: string; delivery?: string; radius?: string }
+        | { meetup?: string; delivery?: string; radius?: string; q?: string }
         | Promise<{
               meetup?: string;
               delivery?: string;
               radius?: string;
+              q?: string;
           }>;
 }) {
     const session = await getSession();
@@ -134,6 +157,7 @@ export default async function Products({
                         meetup?: string;
                         delivery?: string;
                         radius?: string;
+                        q?: string;
                     }
                   | undefined);
 
@@ -144,73 +168,109 @@ export default async function Products({
         latitude,
         longitude,
     };
+    const keyword = resolved?.q?.trim() ?? "";
 
-    const products = await getProducts(filter);
+    const products = await getProducts(filter, keyword);
+
     return (
-        <div className="p-5 pb-20">
-            <ProductFilters
-                defaultLatitude={latitude}
-                defaultLongitude={longitude}
-            />
-            {products.map((product) => {
-                const thumbnail =
-                    parseProductPhotos(product.photo)[0] ?? "/default-avatar.png";
+        <div className="p-5 pt-3 pb-20">
+            <div className="space-y-2">
+                <ListSearchForm
+                    action="/products"
+                    placeholder="상품 검색"
+                    defaultValue={keyword}
+                    hiddenParams={[
+                        ...(filter.meetup
+                            ? [{ name: "meetup", value: "1" }]
+                            : []),
+                        ...(filter.delivery
+                            ? [{ name: "delivery", value: "1" }]
+                            : []),
+                        ...(filter.radiusKm > 0
+                            ? [
+                                  {
+                                      name: "radius",
+                                      value: String(filter.radiusKm),
+                                  },
+                              ]
+                            : []),
+                    ]}
+                />
+                <ProductFilters
+                    defaultLatitude={latitude}
+                    defaultLongitude={longitude}
+                />
+            </div>
 
-                return (
-                    <Link
-                        key={product.id}
-                        href={`/products/${product.id}`}
-                        className="mb-5 flex gap-5 border-b border-neutral-200 pb-5 text-neutral-400 last:border-b-0 last:pb-0"
-                    >
-                        <div className="relative size-28 overflow-hidden rounded-md">
-                            <Image
-                                src={thumbnail}
-                                alt={product.title}
-                                className="object-cover"
-                                fill
-                            />
-                        </div>
-                        <div className="flex flex-1 flex-col gap-2">
-                            <h2 className="text-lg font-semibold text-neutral-700">
-                                {product.title}
-                            </h2>
-                            <div className="flex gap-1">
-                                {product.isMeetup ? (
-                                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-700">
-                                        직거래
-                                    </span>
-                                ) : null}
-                                {product.isDelivery ? (
-                                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
-                                        택배
-                                    </span>
-                                ) : null}
-                            </div>
-                            <h2 className="text-neutral-700">
-                                {formatToWon(product.price)}
-                            </h2>
-                            <div className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-4">
-                                    <span>
-                                        {formatToTimeAgo(
-                                            product.created_at.toString(),
-                                        )}
-                                    </span>
-                                    <span>·</span>
-                                    <span className="flex items-center gap-1">
-                                        <EyeIcon className="size-4" />
-                                        {product.views}
-                                    </span>
+            <div className="mt-5">
+                {products.length === 0 ? (
+                    <p className="pt-3 text-center text-sm text-neutral-500">
+                        상품이 존재하지 않습니다.
+                    </p>
+                ) : (
+                    products.map((product) => {
+                        const thumbnail =
+                            parseProductPhotos(product.photo)[0] ??
+                            "https://blocks.astratic.com/img/user-img-small.png";
+
+                        return (
+                            <Link
+                                key={product.id}
+                                href={`/products/${product.id}`}
+                                className="mb-5 flex gap-5 border-b border-neutral-200 pb-5 text-neutral-400 last:border-b-0 last:pb-0"
+                            >
+                                <div className="relative size-28 overflow-hidden rounded-md">
+                                    <Image
+                                        src={thumbnail}
+                                        alt={product.title}
+                                        className="object-cover"
+                                        fill
+                                    />
                                 </div>
-                                <div className="flex items-center gap-1 text-myblue">
-                                    <HeartIcon className="size-4" />
-                                    {product._count.wishes}
+                                <div className="flex flex-1 flex-col gap-2">
+                                    <h2 className="text-lg font-semibold text-neutral-700">
+                                        {product.title}
+                                    </h2>
+                                    <div className="flex gap-1">
+                                        {product.isMeetup ? (
+                                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-700">
+                                                직거래
+                                            </span>
+                                        ) : null}
+                                        {product.isDelivery ? (
+                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
+                                                택배
+                                            </span>
+                                        ) : null}
+                                    </div>
+                                    <h2 className="text-neutral-700">
+                                        {formatToWon(product.price)}
+                                    </h2>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-4">
+                                            <span>
+                                                {formatToTimeAgo(
+                                                    product.created_at.toString(),
+                                                )}
+                                            </span>
+                                            <span>·</span>
+                                            <span className="flex items-center gap-1">
+                                                <EyeIcon className="size-4" />
+                                                {product.views}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-myblue">
+                                            <HeartIcon className="size-4" />
+                                            {product._count.wishes}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </Link>
-                );
-            })}
+                            </Link>
+                        );
+                    })
+                )}
+            </div>
+
             <Link
                 href="/products/create"
                 className="fixed bottom-20 right-10 size-15 text-myblue transition-colors hover:text-myblue/80"

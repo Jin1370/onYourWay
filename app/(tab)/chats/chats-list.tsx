@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
-import { formatToTimeAgo } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { formatToTimeAgo } from "@/lib/utils";
+import { UserIcon } from "@heroicons/react/24/solid";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +11,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 interface ChatRoomSummary {
     id: string;
     type: string;
+    product: {
+        title: string;
+    } | null;
     university: {
         name: string | null;
     } | null;
@@ -65,11 +69,11 @@ export default function ChatsList({
 
     useEffect(() => {
         const onFocus = () => {
-            refreshChatRooms();
+            void refreshChatRooms();
         };
         const onVisibilityChange = () => {
             if (document.visibilityState === "visible") {
-                refreshChatRooms();
+                void refreshChatRooms();
             }
         };
         window.addEventListener("focus", onFocus);
@@ -91,7 +95,7 @@ export default function ChatsList({
             const channel = client.channel(`room-${roomId}`);
             channel
                 .on("broadcast", { event: "message" }, () => {
-                    refreshChatRooms();
+                    void refreshChatRooms();
                 })
                 .subscribe();
             channels.push(channel);
@@ -106,6 +110,11 @@ export default function ChatsList({
 
     return (
         <>
+            {chatRooms.length === 0 ? (
+                <p className="pt-3 text-center text-sm text-neutral-500">
+                    채팅방이 존재하지 않습니다.
+                </p>
+            ) : null}
             {chatRooms.map((chatRoom) => {
                 const otherMembers = chatRoom.members
                     .filter((m) => m.user.id !== userId)
@@ -115,47 +124,47 @@ export default function ChatsList({
                 const roomTitle =
                     chatRoom.type === "UNIVERSITY"
                         ? `${chatRoom.university?.name}`
-                        : firstOpponent?.username || "(대화상대없음)";
+                        : `${firstOpponent?.username || "(알 수 없음)"}${chatRoom.product?.title ? ` (${chatRoom.product.title})` : ""}`;
 
                 return (
                     <Link
                         key={chatRoom.id}
                         href={`/chats/${chatRoom.id}`}
-                        className="pb-5 mb-5 border-b border-neutral-200 text-neutral-700 flex flex-col last:border-b-0 last:pb-0"
+                        className="mb-5 flex flex-col border-b border-neutral-200 pb-5 text-neutral-700 last:border-b-0 last:pb-0"
                     >
                         <div className="flex items-center gap-5">
                             {chatRoom.type === "UNIVERSITY" ? (
-                                <div className="size-9 rounded-full  flex items-center justify-center bg-blue-100 text-white font-bold text-lg shrink-0">
-                                    🏛️
+                                <div className="size-9 shrink-0 rounded-full bg-blue-100 text-lg font-bold text-white flex items-center justify-center">
+                                    🌍
                                 </div>
                             ) : (
                                 <Image
                                     src={
                                         firstOpponent?.avatar ||
-                                        "/default-avatar.png"
+                                        "https://blocks.astratic.com/img/user-img-small.png"
                                     }
                                     alt={roomTitle}
                                     width={50}
                                     height={50}
-                                    className="size-9 rounded-full object-cover shrink-0"
+                                    className="size-9 shrink-0 rounded-full object-cover"
                                 />
                             )}
-                            <div className="flex flex-col flex-1 min-w-0">
-                                <h2 className="font-semibold text-lg line-clamp-1 break-all">
+                            <div className="flex min-w-0 flex-1 flex-col">
+                                <h2 className="line-clamp-1 break-all font-semibold">
                                     {roomTitle}
-                                    {chatRoom.type === "DIRECT" &&
-                                    participantsNum > 1
-                                        ? ` 외 ${participantsNum - 1}명`
-                                        : chatRoom.type === "UNIVERSITY"
-                                          ? ` (${participantsNum + 1})`
-                                          : null}
+                                    {chatRoom.type === "UNIVERSITY" ? (
+                                        <span className="ml-2 inline-flex items-center gap-0.5 text-sm text-neutral-400">
+                                            <UserIcon className="size-3.5" />
+                                            {participantsNum + 1}
+                                        </span>
+                                    ) : null}
                                 </h2>
-                                <div className="flex justify-between items-center w-full gap-3 text-mygray">
+                                <div className="flex w-full items-center justify-between gap-3 text-mygray">
                                     <span className="line-clamp-1 break-all">
                                         {chatRoom.messages[0]?.content ||
-                                            "새로운 채팅방이 생성되었습니다."}
+                                            "아직 채팅 내용이 없습니다."}
                                     </span>
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex shrink-0 items-center gap-2">
                                         {chatRoom.unreadCount > 0 ? (
                                             <span className="min-w-5 h-5 px-1 rounded-full bg-sky-500 text-white text-xs font-semibold flex items-center justify-center">
                                                 {chatRoom.unreadCount > 99
@@ -163,13 +172,13 @@ export default function ChatsList({
                                                     : chatRoom.unreadCount}
                                             </span>
                                         ) : null}
-                                        {chatRoom.messages[0] && (
+                                        {chatRoom.messages[0] ? (
                                             <span className="text-sm">
                                                 {formatToTimeAgo(
                                                     chatRoom.messages[0].created_at.toString(),
                                                 )}
                                             </span>
-                                        )}
+                                        ) : null}
                                     </div>
                                 </div>
                             </div>

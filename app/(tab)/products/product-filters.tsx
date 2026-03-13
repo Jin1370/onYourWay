@@ -49,7 +49,7 @@ export default function ProductFilters({
     );
 
     return (
-        <div className="mb-4 flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+        <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm">
             <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 text-neutral-700">
                     <input
@@ -121,7 +121,8 @@ export default function ProductFilters({
                                     Math.max(
                                         0,
                                         distanceOptions.findIndex(
-                                            (opt) => opt.value === current.radius,
+                                            (opt) =>
+                                                opt.value === current.radius,
                                         ),
                                     ) * 25
                                 }
@@ -130,10 +131,13 @@ export default function ProductFilters({
                                         distanceOptions.length - 1,
                                         Math.max(
                                             0,
-                                            Math.round(Number(event.target.value) / 25),
+                                            Math.round(
+                                                Number(event.target.value) / 25,
+                                            ),
                                         ),
                                     );
-                                    const nextRadius = distanceOptions[idx]?.value ?? 0;
+                                    const nextRadius =
+                                        distanceOptions[idx]?.value ?? 0;
                                     updateFilter({
                                         meetup: current.meetup,
                                         delivery: current.delivery,

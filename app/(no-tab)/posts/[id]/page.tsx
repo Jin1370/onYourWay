@@ -118,7 +118,10 @@ export default async function Post({
                     width={28}
                     height={28}
                     className="size-7 rounded-full"
-                    src={post.user.avatar || "/default-avatar.png"}
+                    src={
+                        post.user.avatar ||
+                        "https://blocks.astratic.com/img/user-img-small.png"
+                    }
                     alt={post.user.username}
                 />
                 <div>
@@ -190,7 +193,8 @@ export default async function Post({
                                 height={28}
                                 className="size-7 rounded-full"
                                 src={
-                                    comment.user.avatar || "/default-avatar.png"
+                                    comment.user.avatar ||
+                                    "https://blocks.astratic.com/img/user-img-small.png"
                                 }
                                 alt={comment.user.username}
                             />
