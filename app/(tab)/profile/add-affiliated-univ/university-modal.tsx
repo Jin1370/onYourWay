@@ -105,9 +105,8 @@ export default function UniversityModal({
                                 type,
                                 returnTo,
                             )}
-                            className="primary-btn"
                         >
-                            <button>
+                            <button className="primary-btn w-full">
                                 {type === "domestic"
                                     ? "국내 소속 대학 등록"
                                     : "해외 소속 대학 등록"}

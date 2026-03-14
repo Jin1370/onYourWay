@@ -75,7 +75,7 @@ export default function LifelogEditor({
         immediatelyRender: false,
         editorProps: {
             attributes: {
-                class: "tiptap-editor prose prose-sm max-w-none h-[420px] overflow-y-auto p-4 focus:outline-none",
+                class: "tiptap-editor prose prose-base max-w-none h-[420px] overflow-y-auto p-4 focus:outline-none",
                 spellcheck: "false",
                 autocorrect: "off",
                 autocapitalize: "off",
@@ -132,7 +132,8 @@ export default function LifelogEditor({
         try {
             await new Promise<void>((resolve, reject) => {
                 image.onload = () => resolve();
-                image.onerror = () => reject(new Error("이미지를 불러올 수 없습니다."));
+                image.onerror = () =>
+                    reject(new Error("이미지를 불러올 수 없습니다."));
             });
 
             const shouldResize =

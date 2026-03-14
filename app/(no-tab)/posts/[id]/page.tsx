@@ -14,7 +14,7 @@ import { createComment } from "./action";
 import CommentList from "./comment-list";
 
 async function getPost(postId: number) {
-    const post = await db.post.findUnique({
+    const post = await db.post.findUniqueOrThrow({
         where: {
             id: postId,
         },
@@ -108,8 +108,12 @@ export default async function Post({
     if (!session.id) {
         redirect("/login");
     }
-    const post = await getPost(postId);
-    if (!post) return notFound();
+    let post: Awaited<ReturnType<typeof getPost>>;
+    try {
+        post = await getPost(postId);
+    } catch {
+        return notFound();
+    }
     const comments = (await getComments(postId, session.id)).map((comment) => ({
         ...comment,
         created_at: comment.created_at.toString(),
@@ -166,7 +170,7 @@ export default async function Post({
                 </div>
             </div>
 
-            <h2 className="text-lg font-semibold mb-1">{post.title}</h2>
+            <h2 className="text-lg font-semibold mt-4 mb-2">{post.title}</h2>
             {post.content ? (
                 <div className="mb-10">
                     <LifelogViewer content={post.content} />

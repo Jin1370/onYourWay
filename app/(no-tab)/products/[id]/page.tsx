@@ -175,7 +175,9 @@ export default async function Product({
                 title={product.title}
             />
             <h2 className="text-lg font-semibold my-1">{product.title}</h2>
-            <p className="mb-10">{product.description}</p>
+            <p className="mb-10 whitespace-pre-line">
+                {product.description}
+            </p>
             <div className="mb-6 flex flex-col gap-2">
                 <div className="flex gap-2 flex-wrap">
                     {product.isMeetup ? (
