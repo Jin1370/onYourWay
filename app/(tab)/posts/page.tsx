@@ -7,7 +7,7 @@ import {
     ChatBubbleBottomCenterIcon,
     HandThumbUpIcon,
 } from "@heroicons/react/24/outline";
-import { PlusCircleIcon } from "@heroicons/react/24/solid";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -278,9 +278,9 @@ export default async function Posts({
 
             <Link
                 href={`/posts/create?tab=${currentTab}`}
-                className="fixed bottom-20 right-10 size-15 text-myblue transition-colors hover:text-myblue/80"
+                className="fixed bottom-20 right-10 size-15 rounded-full bg-myblue text-white shadow-lg flex items-center justify-center transition-colors hover:bg-myblue/90"
             >
-                <PlusCircleIcon />
+                <PlusIcon className="size-7 stroke-[2.5]" />
             </Link>
         </div>
     );
