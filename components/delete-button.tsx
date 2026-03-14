@@ -13,6 +13,7 @@ interface DeleteBtnProps {
     triggerAriaLabel?: string;
     triggerTitle?: string;
     triggerIcon?: React.ReactNode;
+    onTrigger?: () => void;
 }
 
 export default function DeleteBtn({
@@ -26,6 +27,7 @@ export default function DeleteBtn({
     triggerAriaLabel,
     triggerTitle,
     triggerIcon,
+    onTrigger,
 }: DeleteBtnProps) {
     const [isOpen, setIsOpen] = useState(false);
     const descriptionLines = useMemo(
@@ -42,7 +44,10 @@ export default function DeleteBtn({
         <>
             <button
                 type="button"
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                    onTrigger?.();
+                    setIsOpen(true);
+                }}
                 className={triggerClassName}
                 aria-label={triggerAriaLabel}
                 title={triggerTitle}

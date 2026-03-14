@@ -7,11 +7,11 @@ import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
-import { TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createComment, deleteComment } from "./action";
+import { createComment } from "./action";
+import CommentList from "./comment-list";
 
 async function getPost(postId: number) {
     const post = await db.post.update({
@@ -90,7 +90,10 @@ export default async function Post({
 
     const post = await getPost(postId);
     if (!post) return notFound();
-    const comments = await getComments(postId);
+    const comments = (await getComments(postId)).map((comment) => ({
+        ...comment,
+        created_at: comment.created_at.toString(),
+    }));
 
     const session = await getSession();
     if (!session.id) {
@@ -183,52 +186,11 @@ export default async function Post({
                         댓글 {post._count.comments}
                     </span>
                 ) : null}
-                {comments.map((comment) => (
-                    <div
-                        key={comment.id}
-                        className="flex items-center justify-between py-5 border-t border-neutral-300 last:mb-0 text-sm"
-                    >
-                        <div className="flex items-center gap-5">
-                            <Image
-                                width={28}
-                                height={28}
-                                className="size-7 rounded-full"
-                                src={
-                                    comment.user.avatar ||
-                                    "https://blocks.astratic.com/img/user-img-small.png"
-                                }
-                                alt={comment.user.username}
-                            />
-                            <div className="flex flex-col">
-                                <div>
-                                    <span>{comment.user.username}</span>
-                                    <span> · </span>
-                                    <span className="text-xs">
-                                        {formatToTimeAgo(
-                                            comment.created_at.toString(),
-                                        )}
-                                    </span>
-                                </div>
-                                <span>{comment.content}</span>
-                            </div>
-                        </div>
-                        {session.id === comment.userId ? (
-                            <DeleteBtn
-                                onDelete={deleteComment.bind(
-                                    null,
-                                    postId,
-                                    comment.id,
-                                )}
-                                title="댓글 삭제"
-                                triggerLabel=""
-                                triggerIcon={<TrashIcon className="size-4" />}
-                                triggerClassName="px-3 py-1.5 hover:text-neutral-400 flex items-center text-mygray"
-                                triggerAriaLabel="댓글 삭제"
-                                triggerTitle="댓글 삭제"
-                            />
-                        ) : null}
-                    </div>
-                ))}
+                <CommentList
+                    comments={comments}
+                    postId={postId}
+                    sessionId={session.id}
+                />
             </div>
 
             <form
