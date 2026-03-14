@@ -15,7 +15,8 @@ type ProfileSettingsFormProps = {
         username: string;
         email: string | null;
         avatar: string | null;
-        affiliatedUnivName: string | null;
+        foreignAffiliatedUnivName: string | null;
+        domesticAffiliatedUnivName: string | null;
     };
     status?: string;
 };
@@ -193,18 +194,35 @@ export default function ProfileSettingsForm({
 
                 <div className="mb-5">
                     <label className="mb-1 block text-sm font-medium text-neutral-700">
-                        소속대학
+                        해외소속대학
                     </label>
                     <div className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2.5 text-sm">
                         <span className="text-neutral-700">
-                            {user.affiliatedUnivName ?? "소속대학 미등록"}
+                            {user.foreignAffiliatedUnivName ?? "미등록"}
                         </span>
                         <Link
-                            href="/profile/add-affiliated-univ?returnTo=%2Fprofile%2Fsettings"
+                            href="/profile/add-affiliated-univ?type=foreign&returnTo=%2Fprofile%2Fsettings"
                             className="inline-flex items-center gap-1 rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50"
                         >
                             <PencilSquareIcon className="size-4" />
-                            {user.affiliatedUnivName ? "변경" : "등록"}
+                            {user.foreignAffiliatedUnivName ? "변경" : "등록"}
+                        </Link>
+                    </div>
+                </div>
+                <div className="mb-5">
+                    <label className="mb-1 block text-sm font-medium text-neutral-700">
+                        국내소속대학
+                    </label>
+                    <div className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2.5 text-sm">
+                        <span className="text-neutral-700">
+                            {user.domesticAffiliatedUnivName ?? "미등록"}
+                        </span>
+                        <Link
+                            href="/profile/add-affiliated-univ?type=domestic&returnTo=%2Fprofile%2Fsettings"
+                            className="inline-flex items-center gap-1 rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50"
+                        >
+                            <PencilSquareIcon className="size-4" />
+                            {user.domesticAffiliatedUnivName ? "변경" : "등록"}
                         </Link>
                     </div>
                 </div>

@@ -15,7 +15,12 @@ async function getUser() {
             username: true,
             email: true,
             avatar: true,
-            affiliatedUniv: {
+            foreignAffiliatedUniv: {
+                select: {
+                    name: true,
+                },
+            },
+            domesticAffiliatedUniv: {
                 select: {
                     name: true,
                 },
@@ -42,7 +47,10 @@ export default async function ProfileSettings({
                 username: user.username,
                 email: user.email,
                 avatar: user.avatar,
-                affiliatedUnivName: user.affiliatedUniv?.name ?? null,
+                foreignAffiliatedUnivName:
+                    user.foreignAffiliatedUniv?.name ?? null,
+                domesticAffiliatedUnivName:
+                    user.domesticAffiliatedUniv?.name ?? null,
             }}
             status={resolved?.status}
         />

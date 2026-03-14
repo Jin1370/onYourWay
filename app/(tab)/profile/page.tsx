@@ -25,7 +25,12 @@ async function getUserProfile() {
             username: true,
             email: true,
             avatar: true,
-            affiliatedUniv: {
+            foreignAffiliatedUniv: {
+                select: {
+                    name: true,
+                },
+            },
+            domesticAffiliatedUniv: {
                 select: {
                     name: true,
                 },
@@ -53,7 +58,7 @@ export default async function Profile() {
                 <Image
                     width={64}
                     height={64}
-                    className="size-16 rounded-full border border-neutral-200 object-cover"
+                    className="size-15 rounded-full border border-neutral-200 object-cover"
                     src={
                         user.avatar ||
                         "https://blocks.astratic.com/img/user-img-small.png"
@@ -66,13 +71,19 @@ export default async function Profile() {
                     </span>
                     <div className="flex flex-col gap-0.5 text-sm text-neutral-500">
                         <div className="flex">
-                            <span className="w-15">이메일</span>
+                            <span className="w-22">이메일</span>
                             <span>{user.email ?? "이메일 미등록"}</span>
                         </div>
                         <div className="flex">
-                            <span className="w-15">소속대학</span>
+                            <span className="w-22">해외소속대학</span>
                             <span>
-                                {user.affiliatedUniv?.name ?? "소속대학 미등록"}
+                                {user.foreignAffiliatedUniv?.name ?? "미등록"}
+                            </span>
+                        </div>
+                        <div className="flex">
+                            <span className="w-22">국내소속대학</span>
+                            <span>
+                                {user.domesticAffiliatedUniv?.name ?? "미등록"}
                             </span>
                         </div>
                     </div>

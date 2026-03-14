@@ -1,4 +1,4 @@
-import db from "@/lib/db";
+﻿import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { redirect } from "next/navigation";
 import CreatePostForm from "./create-post-form";
@@ -21,14 +21,16 @@ export default async function CreatePost({
             id: session.id,
         },
         select: {
-            affiliatedUnivId: true,
+            foreignAffiliatedUnivId: true,
         },
     });
 
     return (
         <CreatePostForm
             tab={currentTab}
-            canWriteLifelog={Boolean(user?.affiliatedUnivId)}
+            canWriteLifelog={Boolean(user?.foreignAffiliatedUnivId)}
         />
     );
 }
+
+

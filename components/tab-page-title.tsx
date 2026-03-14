@@ -5,15 +5,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 function getTitle(pathname: string) {
-    if (pathname.startsWith("/profile/my-posts")) return "작성한 포스트";
+    if (pathname.startsWith("/profile/my-posts"))
+        return "프로필 > 작성한 포스트";
     if (pathname.startsWith("/profile/commented-posts"))
-        return "댓글 단 포스트";
+        return "프로필 > 댓글 단 포스트";
     if (pathname.startsWith("/profile/liked-posts"))
-        return "좋아요 누른 포스트";
-    if (pathname.startsWith("/profile/my-products")) return "등록한 상품";
-    if (pathname.startsWith("/profile/wished-products")) return "찜한 상품";
+        return "프로필 > 좋아요 누른 포스트";
+    if (pathname.startsWith("/profile/my-products"))
+        return "프로필 > 등록한 상품";
+    if (pathname.startsWith("/profile/wished-products"))
+        return "프로필 > 찜한 상품";
     if (pathname.startsWith("/profile/my-univ-interests"))
-        return "내 관심 대학";
+        return "프로필 > 내 관심 대학";
+    if (pathname.startsWith("/profile/add-univ-interest"))
+        return "프로필 > 관심 대학 추가";
+    if (pathname.startsWith("/profile/add-affiliated-univ"))
+        return "프로필 > 소속 대학 등록";
     if (pathname.startsWith("/posts")) return "포스트";
     if (pathname.startsWith("/products")) return "중고거래";
     if (pathname.startsWith("/chats")) return "채팅";

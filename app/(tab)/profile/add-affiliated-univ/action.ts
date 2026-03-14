@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import db from "@/lib/db";
 import { getUniversityDetails } from "@/lib/university-details";
@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 export async function saveAffiliatedUniv(
     univId: number,
+    type: "foreign" | "domestic",
     returnTo?: string,
 ) {
     const session = await getSession();
@@ -17,9 +18,10 @@ export async function saveAffiliatedUniv(
         where: {
             id: session.id,
         },
-        data: {
-            affiliatedUnivId: univId,
-        },
+        data:
+            type === "foreign"
+                ? { foreignAffiliatedUnivId: univId }
+                : { domesticAffiliatedUnivId: univId },
     });
 
     let chatRoom = await db.chatRoom.findUnique({
@@ -50,7 +52,10 @@ export async function saveAffiliatedUniv(
                 chatRoomId: chatRoom.id,
             },
         },
-        update: {},
+        update: {
+            is_hidden: false,
+            is_muted: false,
+        },
         create: {
             userId: session.id,
             chatRoomId: chatRoom.id,

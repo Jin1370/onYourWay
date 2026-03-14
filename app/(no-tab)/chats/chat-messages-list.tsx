@@ -1,13 +1,15 @@
-"use client";
+﻿"use client";
 
+import { getSupabaseClient } from "@/lib/supabase-client";
+import { formatDate, formatTime } from "@/lib/utils";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 import { ArrowUpCircleIcon, UserIcon } from "@heroicons/react/24/solid";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { markAsRead, saveMessage } from "./action";
 import { InitialMessages } from "./[id]/page";
-import { formatDate, formatTime } from "@/lib/utils";
-import { getSupabaseClient } from "@/lib/supabase-client";
 
 interface ChatMessageListProps {
     chatRoomId: string;
@@ -16,6 +18,7 @@ interface ChatMessageListProps {
         username: string;
         avatar: string | null;
         last_read_at: string | Date;
+        is_muted: boolean;
     }[];
     userId: number;
     username: string;
@@ -37,8 +40,12 @@ export default function ChatMessagesList({
     universityName,
     productTitle,
 }: ChatMessageListProps) {
+    const router = useRouter();
     const [messages, setMessages] = useState(initialMessages);
     const [message, setMessage] = useState("");
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [participantReadAt, setParticipantReadAt] = useState<
         Record<number, string>
     >(
@@ -49,6 +56,8 @@ export default function ChatMessagesList({
             return acc;
         }, {}),
     );
+    const myParticipant = participants.find((participant) => participant.id === userId);
+    const [isMuted, setIsMuted] = useState(Boolean(myParticipant?.is_muted));
 
     const channel = useRef<RealtimeChannel>(null);
 
@@ -160,7 +169,7 @@ export default function ChatMessagesList({
     const headerTitle =
         chatRoomType === "UNIVERSITY"
             ? `${universityName}`
-            : `${firstOpponent?.username || "알 수 없는 상대"}${productTitle ? ` (${productTitle})` : ""}`;
+            : `${firstOpponent?.username || "(알 수 없는 상대)"}${productTitle ? ` (${productTitle})` : ""}`;
 
     const isSameDay = (date1: Date, date2: Date) => {
         return (
@@ -170,8 +179,7 @@ export default function ChatMessagesList({
         );
     };
 
-    const isGroupChat =
-        chatRoomType === "UNIVERSITY" || participants.length > 2;
+    const isGroupChat = chatRoomType === "UNIVERSITY" || participants.length > 2;
     const readCountsByIndex = messages.map((msg) => {
         const messageCreatedAt = new Date(msg.created_at).getTime();
         return participants.filter((participant) => {
@@ -198,36 +206,84 @@ export default function ChatMessagesList({
         }
     }
 
+    const toggleMute = async () => {
+        const response = await fetch(`/api/chats/${chatRoomId}/membership`, {
+            method: "PATCH",
+        });
+        if (!response.ok) {
+            alert("알림 설정 변경에 실패했습니다.");
+            return;
+        }
+        const data = await response.json();
+        setIsMuted(Boolean(data.isMuted));
+    };
+
+    const deleteChatRoomFromList = async () => {
+        const response = await fetch(`/api/chats/${chatRoomId}/membership`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            alert("목록에서 삭제에 실패했습니다.");
+            return;
+        }
+        setIsDeleteModalOpen(false);
+        setIsMenuOpen(false);
+        router.push("/chats");
+    };
+
+    const leaveChatRoom = async () => {
+        const response = await fetch(`/api/chats/${chatRoomId}/membership/leave`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            alert("채팅방 나가기에 실패했습니다.");
+            return;
+        }
+        setIsLeaveModalOpen(false);
+        setIsMenuOpen(false);
+        router.push("/chats");
+    };
+
     return (
         <div className="flex h-dvh flex-col bg-white">
-            <div className="z-10 flex shrink-0 items-center gap-3 border-neutral-200 bg-white p-3">
-                {chatRoomType === "UNIVERSITY" ? (
-                    <div className="flex size-9 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-white">
-                        🌍
-                    </div>
-                ) : (
-                    <Image
-                        src={
-                            firstOpponent?.avatar ||
-                            "https://blocks.astratic.com/img/user-img-small.png"
-                        }
-                        alt={headerTitle}
-                        width={50}
-                        height={50}
-                        className="size-9 rounded-full object-cover"
-                    />
-                )}
-                <div className="flex flex-col gap-2">
-                    <span className="text-lg font-semibold leading-none">
-                        {headerTitle}
-                    </span>
+            <div className="z-10 flex shrink-0 items-center justify-between border-neutral-200 bg-white p-3">
+                <div className="flex items-center gap-3">
                     {chatRoomType === "UNIVERSITY" ? (
-                        <span className="inline-flex items-center gap-0.5 text-sm text-neutral-400">
-                            <UserIcon className="size-3.5" />
-                            {participants.length}
+                        <div className="flex size-9 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-white">
+                            🌍
+                        </div>
+                    ) : (
+                        <Image
+                            src={
+                                firstOpponent?.avatar ||
+                                "https://blocks.astratic.com/img/user-img-small.png"
+                            }
+                            alt={headerTitle}
+                            width={50}
+                            height={50}
+                            className="size-9 rounded-full object-cover"
+                        />
+                    )}
+                    <div className="flex flex-col gap-2">
+                        <span className="text-lg font-semibold leading-none">
+                            {headerTitle}
                         </span>
-                    ) : null}
+                        {chatRoomType === "UNIVERSITY" ? (
+                            <span className="inline-flex items-center gap-0.5 text-sm text-neutral-400">
+                                <UserIcon className="size-3.5" />
+                                {participants.length}
+                            </span>
+                        ) : null}
+                    </div>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => setIsMenuOpen(true)}
+                    className="rounded-md p-1 text-neutral-600 hover:bg-neutral-100"
+                    aria-label="채팅방 메뉴 열기"
+                >
+                    <Bars3Icon className="size-6" />
+                </button>
             </div>
 
             <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-5">
@@ -359,6 +415,124 @@ export default function ChatMessagesList({
                     </button>
                 </div>
             </form>
+
+            {isMenuOpen ? (
+                <div
+                    className="fixed inset-0 z-50 bg-black/40"
+                    onClick={() => setIsMenuOpen(false)}
+                >
+                    <div
+                        className="absolute right-0 top-0 h-full w-72 bg-white p-4 shadow-xl"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-left text-sm text-neutral-800 hover:bg-neutral-50"
+                            onClick={toggleMute}
+                        >
+                            {isMuted ? "알림 켜기" : "알림 끄기"}
+                        </button>
+                        <button
+                            type="button"
+                            className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2 text-left text-sm text-neutral-800 hover:bg-neutral-50"
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                setIsDeleteModalOpen(true);
+                            }}
+                        >
+                            목록에서 삭제
+                        </button>
+                        <button
+                            type="button"
+                            className="mt-2 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-100"
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                setIsLeaveModalOpen(true);
+                            }}
+                        >
+                            채팅방 나가기
+                        </button>
+
+                        <div className="mt-6">
+                            <h3 className="mb-2 text-sm font-semibold text-neutral-800">
+                                멤버
+                            </h3>
+                            <ul className="flex flex-col gap-2">
+                                {participants.map((participant) => (
+                                    <li
+                                        key={participant.id}
+                                        className="rounded-md border border-neutral-200 px-3 py-2 text-sm text-neutral-700"
+                                    >
+                                        {participant.username}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            {isDeleteModalOpen ? (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
+                        <h3 className="text-center text-lg font-bold text-neutral-800">
+                            목록에서 삭제
+                        </h3>
+                        <p className="mt-2 text-center text-sm text-neutral-500">
+                            이 채팅방을 목록에서 삭제할까요?
+                            <br />
+                            상대방에게는 표시되지 않습니다.
+                        </p>
+                        <div className="mt-6 flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="flex-1 rounded-xl bg-neutral-100 py-3 font-semibold text-neutral-600 active:bg-neutral-200"
+                            >
+                                취소
+                            </button>
+                            <button
+                                type="button"
+                                onClick={deleteChatRoomFromList}
+                                className="flex-1 rounded-xl bg-red-500 py-3 font-semibold text-white active:bg-red-600"
+                            >
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            {isLeaveModalOpen ? (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
+                        <h3 className="text-center text-lg font-bold text-neutral-800">
+                            채팅방 나가기
+                        </h3>
+                        <p className="mt-2 text-center text-sm text-neutral-500">
+                            정말로 채팅방을 나가시겠습니까?
+                            <br />
+                            상대에게는 (알 수 없음)으로 표시됩니다.
+                        </p>
+                        <div className="mt-6 flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsLeaveModalOpen(false)}
+                                className="flex-1 rounded-xl bg-neutral-100 py-3 font-semibold text-neutral-600 active:bg-neutral-200"
+                            >
+                                취소
+                            </button>
+                            <button
+                                type="button"
+                                onClick={leaveChatRoom}
+                                className="flex-1 rounded-xl bg-red-500 py-3 font-semibold text-white active:bg-red-600"
+                            >
+                                나가기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }

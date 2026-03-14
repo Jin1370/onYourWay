@@ -9,6 +9,7 @@ interface UniversityModalProps {
     domain: string;
     website: string;
     returnTo: string;
+    type: "foreign" | "domestic";
     onClose: () => void;
 }
 
@@ -27,6 +28,7 @@ export default function UniversityModal({
     domain,
     website,
     returnTo,
+    type,
     onClose,
 }: UniversityModalProps) {
     const [data, setData] = useState<UniversityFromDB | null>(null);
@@ -100,11 +102,16 @@ export default function UniversityModal({
                             action={saveAffiliatedUniv.bind(
                                 null,
                                 data.id,
+                                type,
                                 returnTo,
                             )}
                             className="primary-btn"
                         >
-                            <button>해외 소속 대학 등록</button>
+                            <button>
+                                {type === "domestic"
+                                    ? "국내 소속 대학 등록"
+                                    : "해외 소속 대학 등록"}
+                            </button>
                         </form>
                     </>
                 )}

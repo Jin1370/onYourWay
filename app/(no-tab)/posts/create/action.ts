@@ -61,11 +61,11 @@ export async function createPost(_prevState: unknown, formData: FormData) {
             id: session.id,
         },
         select: {
-            affiliatedUnivId: true,
+            foreignAffiliatedUnivId: true,
         },
     });
 
-    if (result.data.postType === "LIFELOG" && !user?.affiliatedUnivId) {
+    if (result.data.postType === "LIFELOG" && !user?.foreignAffiliatedUnivId) {
         return {
             fieldErrors: {
                 content: [] as string[],
@@ -89,3 +89,5 @@ export async function createPost(_prevState: unknown, formData: FormData) {
     revalidatePath("/posts");
     redirect(`/posts/${post.id}`);
 }
+
+

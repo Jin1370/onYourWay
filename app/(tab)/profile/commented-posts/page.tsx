@@ -1,4 +1,4 @@
-import db from "@/lib/db";
+﻿import db from "@/lib/db";
 import { getLifelogFirstImage, getLifelogPreview } from "@/lib/post-content";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
@@ -39,7 +39,7 @@ export default async function CommentedPostsPage() {
                 select: {
                     username: true,
                     avatar: true,
-                    affiliatedUniv: {
+                    foreignAffiliatedUniv: {
                         select: {
                             name: true,
                         },
@@ -88,9 +88,9 @@ export default async function CommentedPostsPage() {
                                             {post.user.username}
                                         </span>
                                         {post.postType === "LIFELOG" &&
-                                        post.user.affiliatedUniv?.name ? (
+                                        post.user.foreignAffiliatedUniv?.name ? (
                                             <span className="inline-flex items-center text-[11px] leading-4 px-1.5 py-0 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                                                {post.user.affiliatedUniv.name}
+                                                {post.user.foreignAffiliatedUniv.name}
                                             </span>
                                         ) : null}
                                     </div>
@@ -143,3 +143,4 @@ export default async function CommentedPostsPage() {
         </div>
     );
 }
+

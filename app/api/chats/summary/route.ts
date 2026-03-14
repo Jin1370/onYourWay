@@ -8,6 +8,7 @@ async function getChatRoomsSummary(userId: number) {
             members: {
                 some: {
                     userId,
+                    is_hidden: false,
                 },
             },
         },
@@ -31,6 +32,8 @@ async function getChatRoomsSummary(userId: number) {
             members: {
                 select: {
                     last_read_at: true,
+                    is_muted: true,
+                    is_hidden: true,
                     user: {
                         select: {
                             id: true,

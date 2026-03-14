@@ -18,6 +18,7 @@ async function getChatRoom(chatRoomId: string) {
             members: {
                 select: {
                     last_read_at: true,
+                    is_muted: true,
                     user: {
                         select: {
                             id: true,
@@ -119,6 +120,7 @@ export default async function Chat({
     const participants = chatRoom.members.map((member) => ({
         ...member.user,
         last_read_at: member.last_read_at,
+        is_muted: member.is_muted,
     }));
     return (
         <>

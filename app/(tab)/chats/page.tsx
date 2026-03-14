@@ -1,3 +1,4 @@
+import ListSearchForm from "@/components/list-search-form";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import ChatNotificationConsent from "@/components/chat-notification-consent";
@@ -10,6 +11,7 @@ async function getChatRooms(userId: number) {
             members: {
                 some: {
                     userId,
+                    is_hidden: false,
                 },
             },
         },
@@ -33,6 +35,8 @@ async function getChatRooms(userId: number) {
             members: {
                 select: {
                     last_read_at: true,
+                    is_muted: true,
+                    is_hidden: true,
                     user: {
                         select: {
                             id: true,
@@ -88,16 +92,39 @@ async function getChatRooms(userId: number) {
     });
 }
 
-export default async function ChatRooms() {
+export default async function ChatRooms({
+    searchParams,
+}: {
+    searchParams?: { q?: string } | Promise<{ q?: string }>;
+}) {
     const session = await getSession();
     if (!session.id) {
         redirect("/login");
     }
+    const resolvedSearchParams =
+        searchParams &&
+        typeof (searchParams as Promise<unknown>).then === "function"
+            ? await searchParams
+            : searchParams;
+    const q = resolvedSearchParams?.q?.trim() ?? "";
     const chatRooms = await getChatRooms(session.id);
     return (
         <div className="flex flex-col p-5 pt-3 pb-20">
             <ChatNotificationConsent />
-            <ChatsList initialChatRooms={chatRooms} userId={session.id} />
+            <div className="space-y-2">
+                <ListSearchForm
+                    action="/chats"
+                    placeholder="채팅 검색"
+                    defaultValue={q}
+                />
+            </div>
+            <div className="mt-5">
+                <ChatsList
+                    initialChatRooms={chatRooms}
+                    userId={session.id}
+                    keyword={q}
+                />
+            </div>
         </div>
     );
 }

@@ -24,7 +24,7 @@ async function getPosts(
     const where: {
         postType: "FREE" | "LIFELOG";
         user?: {
-            affiliatedUnivId?: {
+            foreignAffiliatedUnivId?: {
                 in: number[];
             };
         };
@@ -39,7 +39,7 @@ async function getPosts(
 
     if (interestedUnivIds) {
         where.user = {
-            affiliatedUnivId: {
+            foreignAffiliatedUnivId: {
                 in: interestedUnivIds,
             },
         };
@@ -69,7 +69,7 @@ async function getPosts(
                 select: {
                     username: true,
                     avatar: true,
-                    affiliatedUniv: {
+                    foreignAffiliatedUniv: {
                         select: {
                             name: true,
                         },
@@ -219,10 +219,10 @@ export default async function Posts({
                                                 {post.user.username}
                                             </span>
                                             {post.postType === "LIFELOG" &&
-                                            post.user.affiliatedUniv?.name ? (
+                                            post.user.foreignAffiliatedUniv?.name ? (
                                                 <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-1.5 py-0 text-[11px] leading-4 text-blue-700">
                                                     {
-                                                        post.user.affiliatedUniv
+                                                        post.user.foreignAffiliatedUniv
                                                             .name
                                                     }
                                                 </span>
@@ -284,3 +284,5 @@ export default async function Posts({
         </div>
     );
 }
+
+

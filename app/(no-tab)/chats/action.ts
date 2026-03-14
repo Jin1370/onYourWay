@@ -31,21 +31,6 @@ export async function saveMessage(content: string, chatRoomId: string) {
                     name: true,
                 },
             },
-            members: {
-                where: {
-                    userId: {
-                        not: session.id,
-                    },
-                    is_muted: false,
-                },
-                select: {
-                    user: {
-                        select: {
-                            fcmToken: true,
-                        },
-                    },
-                },
-            },
         },
     });
 
@@ -70,9 +55,41 @@ export async function saveMessage(content: string, chatRoomId: string) {
         },
     });
 
-    const tokens = chatRoom.members
-        .map((member) => member.user.fcmToken)
-        .filter((token): token is string => Boolean(token));
+    await db.chatRoomMember.updateMany({
+        where: {
+            chatRoomId,
+            is_hidden: true,
+        },
+        data: {
+            is_hidden: false,
+            is_muted: false,
+        },
+    });
+
+    const receivableMembers = await db.chatRoomMember.findMany({
+        where: {
+            chatRoomId,
+            userId: {
+                not: session.id,
+            },
+            is_muted: false,
+        },
+        select: {
+            user: {
+                select: {
+                    fcmToken: true,
+                },
+            },
+        },
+    });
+
+    const tokens = Array.from(
+        new Set(
+            receivableMembers
+                .map((member) => member.user.fcmToken)
+                .filter((token): token is string => Boolean(token)),
+        ),
+    );
     if (tokens.length === 0) {
         return;
     }

@@ -81,7 +81,19 @@ const createChatRoom = async (sellerId: number, productId: number) => {
             id: true,
         },
     });
-    if (existingChatRoom) redirect(`/chats/${existingChatRoom.id}`);
+    if (existingChatRoom) {
+        await db.chatRoomMember.updateMany({
+            where: {
+                chatRoomId: existingChatRoom.id,
+                userId: session.id,
+            },
+            data: {
+                is_hidden: false,
+                is_muted: false,
+            },
+        });
+        redirect(`/chats/${existingChatRoom.id}`);
+    }
 
     const chatRoom = await db.chatRoom.create({
         data: {
@@ -207,7 +219,7 @@ export default async function Product({
                             >
                                 수정
                             </Link>
-                            <DeleteBtn onDelete={deleteProduct} />
+                            <DeleteBtn onDelete={deleteProduct} title="상품 삭제" />
                         </div>
                     ) : null}
                 </div>

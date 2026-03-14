@@ -45,8 +45,10 @@ model User {
   schedules        ScheduleEntry[]
   universityTodos  UniversityTodo[]
   interestedUnivs  University[]     @relation("UserUnivInterests")
-  affiliatedUniv   University?      @relation("UserAffiliatedUniv", fields: [affiliatedUnivId], references: [id])
-  affiliatedUnivId Int?
+  foreignAffiliatedUniv   University? @relation("UserForeignAffiliatedUniv", fields: [foreignAffiliatedUnivId], references: [id])
+  foreignAffiliatedUnivId Int?
+  domesticAffiliatedUniv   University? @relation("UserDomesticAffiliatedUniv", fields: [domesticAffiliatedUnivId], references: [id])
+  domesticAffiliatedUnivId Int?
   chatRoomMembers  ChatRoomMember[]
   emailVerificationTokens EmailVerificationToken[]
 }
@@ -163,6 +165,7 @@ model ChatRoomMember {
   chatRoomId String
 
   is_muted     Boolean  @default(false)
+  is_hidden    Boolean  @default(false)
   last_read_at DateTime @default(now())
 
   //한 유저가 같은 방에 중복 입장 방지
@@ -230,7 +233,8 @@ model University {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  interestedBy    User[]     @relation("UserUnivInterests")
-  affiliatedUsers User[]     @relation("UserAffiliatedUniv")
-  chatRooms       ChatRoom[]
+  interestedBy             User[] @relation("UserUnivInterests")
+  foreignAffiliatedUsers   User[] @relation("UserForeignAffiliatedUniv")
+  domesticAffiliatedUsers  User[] @relation("UserDomesticAffiliatedUniv")
+  chatRooms                ChatRoom[]
 }

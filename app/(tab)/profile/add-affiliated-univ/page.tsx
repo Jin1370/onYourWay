@@ -1,12 +1,15 @@
-"use client";
+﻿"use client";
 
 import UniversitySearchPicker from "@/components/university-search-picker";
 import { useSearchParams } from "next/navigation";
 import UniversityModal from "./university-modal";
 
-export default function AddAffiliatedUniv() {
+export default function AddForeignAffiliatedUniv() {
     const searchParams = useSearchParams();
     const returnTo = searchParams.get("returnTo") ?? "/profile";
+    const typeParam = searchParams.get("type");
+    const type: "foreign" | "domestic" =
+        typeParam === "domestic" ? "domestic" : "foreign";
 
     return (
         <UniversitySearchPicker
@@ -17,6 +20,7 @@ export default function AddAffiliatedUniv() {
                     domain={props.domain}
                     website={props.website}
                     returnTo={returnTo}
+                    type={type}
                     onClose={props.onClose}
                 />
             )}

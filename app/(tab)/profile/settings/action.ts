@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import db from "@/lib/db";
 import fs from "fs/promises";
@@ -109,7 +109,10 @@ export async function deleteAccount() {
                 interestedUnivs: {
                     set: [],
                 },
-                affiliatedUniv: {
+                foreignAffiliatedUniv: {
+                    disconnect: true,
+                },
+                domesticAffiliatedUniv: {
                     disconnect: true,
                 },
             },
@@ -120,3 +123,4 @@ export async function deleteAccount() {
     await session.destroy();
     redirect("/");
 }
+

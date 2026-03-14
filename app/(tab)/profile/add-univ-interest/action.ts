@@ -46,7 +46,10 @@ export async function saveUnivInterest(univId: number) {
                     chatRoomId: chatRoom.id,
                 },
             },
-            update: {},
+            update: {
+                is_hidden: false,
+                is_muted: false,
+            },
             create: {
                 userId: session.id,
                 chatRoomId: chatRoom.id,

@@ -1,4 +1,4 @@
-import Button from "@/components/button";
+﻿import Button from "@/components/button";
 import DeleteBtn from "@/components/delete-button";
 import Input from "@/components/input";
 import LifelogViewer from "@/components/lifelog-viewer";
@@ -7,6 +7,7 @@ import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/outline";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -27,7 +28,7 @@ async function getPost(postId: number) {
                 select: {
                     username: true,
                     avatar: true,
-                    affiliatedUniv: {
+                    foreignAffiliatedUniv: {
                         select: {
                             name: true,
                         },
@@ -130,9 +131,9 @@ export default async function Post({
                             {post.user.username}
                         </span>
                         {post.postType === "LIFELOG" &&
-                        post.user.affiliatedUniv?.name ? (
+                        post.user.foreignAffiliatedUniv?.name ? (
                             <span className="inline-flex items-center text-[11px] leading-4 px-1.5 py-0 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                                {post.user.affiliatedUniv.name}
+                                {post.user.foreignAffiliatedUniv.name}
                             </span>
                         ) : null}
                     </div>
@@ -212,15 +213,19 @@ export default async function Post({
                             </div>
                         </div>
                         {session.id === comment.userId ? (
-                            <form
-                                action={deleteComment.bind(
+                            <DeleteBtn
+                                onDelete={deleteComment.bind(
                                     null,
                                     postId,
                                     comment.id,
                                 )}
-                            >
-                                <button>삭제</button>
-                            </form>
+                                title="댓글 삭제"
+                                triggerLabel=""
+                                triggerIcon={<TrashIcon className="size-4" />}
+                                triggerClassName="px-3 py-1.5 hover:text-neutral-400 flex items-center text-mygray"
+                                triggerAriaLabel="댓글 삭제"
+                                triggerTitle="댓글 삭제"
+                            />
                         ) : null}
                     </div>
                 ))}
@@ -236,7 +241,7 @@ export default async function Post({
                         <Input
                             name="comment"
                             required
-                            placeholder="댓글을 작성하세요."
+                            placeholder="댓글을 작성해주세요"
                             type="text"
                         />
                     </div>
