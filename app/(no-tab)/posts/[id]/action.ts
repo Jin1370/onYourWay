@@ -77,3 +77,33 @@ export async function deleteComment(postId: number, commentId: number) {
     });
     revalidatePath(`/posts/${postId}`);
 }
+
+export async function likeComment(postId: number, commentId: number) {
+    const session = await getSession();
+    if (!session.id) {
+        return;
+    }
+    await db.postCommentLike.create({
+        data: {
+            commentId,
+            userId: session.id,
+        },
+    });
+    revalidatePath(`/posts/${postId}`);
+}
+
+export async function dislikeComment(postId: number, commentId: number) {
+    const session = await getSession();
+    if (!session.id) {
+        return;
+    }
+    await db.postCommentLike.delete({
+        where: {
+            id: {
+                commentId,
+                userId: session.id,
+            },
+        },
+    });
+    revalidatePath(`/posts/${postId}`);
+}

@@ -4,7 +4,6 @@ import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import {
     ChatBubbleBottomCenterIcon,
-    EyeIcon,
     HandThumbUpIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
@@ -94,11 +93,15 @@ export default async function CommentedPostsPage() {
                                             </span>
                                         ) : null}
                                     </div>
-                                    <span className="text-xs mt-0.5">
-                                        {formatToTimeAgo(
-                                            post.created_at.toString(),
-                                        )}
-                                    </span>
+                                    <div className="mt-0.5 flex items-center gap-2 text-xs">
+                                        <span>
+                                            {formatToTimeAgo(
+                                                post.created_at.toString(),
+                                            )}
+                                        </span>
+                                        <span>·</span>
+                                        <span>조회 {post.views}</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -120,11 +123,7 @@ export default async function CommentedPostsPage() {
                             <p className="line-clamp-2 leading-relaxed">
                                 {getLifelogPreview(post.content)}
                             </p>
-                            <div className="flex items-center justify-between text-sm">
-                                <div className="flex gap-1 items-center">
-                                    <EyeIcon className="size-4" />
-                                    <span>{post.views}</span>
-                                </div>
+                            <div className="flex items-center justify-end text-sm">
                                 <div className="flex gap-4 items-center *:flex *:gap-1 *:items-center text-myblue">
                                     <span>
                                         <HandThumbUpIcon className="size-4" />

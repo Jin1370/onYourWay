@@ -1,8 +1,8 @@
-import db from "@/lib/db";
+﻿import db from "@/lib/db";
 import { parseProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
-import { EyeIcon, HeartIcon } from "@heroicons/react/24/outline";
+import { HeartIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -83,17 +83,14 @@ export default async function MyProductsPage() {
                                     {formatToWon(product.price)}
                                 </h2>
                                 <div className="flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
                                         <span>
                                             {formatToTimeAgo(
                                                 product.created_at.toString(),
                                             )}
                                         </span>
                                         <span>·</span>
-                                        <span className="flex items-center gap-1">
-                                            <EyeIcon className="size-4" />
-                                            {product.views}
-                                        </span>
+                                        <span>조회 {product.views}</span>
                                     </div>
                                     <div className="flex items-center gap-1 text-myblue">
                                         <HeartIcon className="size-4" />

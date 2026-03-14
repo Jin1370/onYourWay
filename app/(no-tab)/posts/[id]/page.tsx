@@ -6,7 +6,6 @@ import LikeButton from "@/components/like-button";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
-import { EyeIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -46,7 +45,7 @@ async function getPost(postId: number) {
     return post;
 }
 
-async function getComments(postId: number) {
+async function getComments(postId: number, sessionId: number) {
     const comments = await db.postComment.findMany({
         where: {
             postId,
@@ -62,9 +61,30 @@ async function getComments(postId: number) {
                     avatar: true,
                 },
             },
+            _count: {
+                select: {
+                    likes: true,
+                },
+            },
+            likes: {
+                where: {
+                    userId: sessionId,
+                },
+                select: {
+                    userId: true,
+                },
+            },
         },
     });
-    return comments;
+    return comments.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        created_at: comment.created_at,
+        userId: comment.userId,
+        user: comment.user,
+        likeCount: comment._count.likes,
+        isLiked: comment.likes.length > 0,
+    }));
 }
 
 async function getIsLiked(postId: number, userId: number) {
@@ -88,17 +108,16 @@ export default async function Post({
     const postId = Number(strId);
     if (isNaN(postId)) return notFound();
 
-    const post = await getPost(postId);
-    if (!post) return notFound();
-    const comments = (await getComments(postId)).map((comment) => ({
-        ...comment,
-        created_at: comment.created_at.toString(),
-    }));
-
     const session = await getSession();
     if (!session.id) {
         redirect("/login");
     }
+    const post = await getPost(postId);
+    if (!post) return notFound();
+    const comments = (await getComments(postId, session.id)).map((comment) => ({
+        ...comment,
+        created_at: comment.created_at.toString(),
+    }));
     const isLiked = await getIsLiked(postId, session.id);
 
     async function deletePost() {
@@ -140,10 +159,12 @@ export default async function Post({
                             </span>
                         ) : null}
                     </div>
-                    <div className="text-xs mt-0.5">
+                    <div className="mt-0.5 flex items-center gap-2 text-xs">
                         <span>
                             {formatToTimeAgo(post.created_at.toString())}
                         </span>
+                        <span>·</span>
+                        <span>조회 {post.views}</span>
                     </div>
                 </div>
             </div>
@@ -156,10 +177,6 @@ export default async function Post({
             ) : null}
 
             <div className="flex flex-col gap-3 items-start">
-                <div className="flex items-center gap-2 text-mygray text-sm">
-                    <EyeIcon className="size-5" />
-                    <span>{post.views}</span>
-                </div>
                 <div className="flex gap-2">
                     <LikeButton
                         isLiked={isLiked}

@@ -3,7 +3,7 @@ import db from "@/lib/db";
 import { parseProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
-import { EyeIcon, HeartIcon } from "@heroicons/react/24/outline";
+import { HeartIcon } from "@heroicons/react/24/outline";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
@@ -254,10 +254,7 @@ export default async function Products({
                                                 )}
                                             </span>
                                             <span>·</span>
-                                            <span className="flex items-center gap-1">
-                                                <EyeIcon className="size-4" />
-                                                {product.views}
-                                            </span>
+                                            <span>조회 {product.views}</span>
                                         </div>
                                         <div className="flex items-center gap-1 text-myblue">
                                             <HeartIcon className="size-4" />

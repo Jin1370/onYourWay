@@ -22,45 +22,43 @@ enum Weekday {
 }
 
 model User {
-  id               Int              @id @default(autoincrement())
-  username         String           @unique
-  email            String?          @unique
-  emailVerifiedAt  DateTime?
-  password         String?
-  fcmToken         String?
-  latitude         Float?
-  longitude        Float?
-  //phone      String?    @unique
-  //github_id  String?    @unique
-  avatar           String?
-  created_at       DateTime         @default(now())
-  updated_at       DateTime         @updatedAt
-  //tokens     SMSToken[]
-  posts            Post[]
-  comments         PostComment[]
-  likes            PostLike[]
-  products         Product[]
-  wishes           Wish[]
-  messages         Message[]
-  schedules        ScheduleEntry[]
-  universityTodos  UniversityTodo[]
-  interestedUnivs  University[]     @relation("UserUnivInterests")
-  foreignAffiliatedUniv   University? @relation("UserForeignAffiliatedUniv", fields: [foreignAffiliatedUnivId], references: [id])
-  foreignAffiliatedUnivId Int?
-  domesticAffiliatedUniv   University? @relation("UserDomesticAffiliatedUniv", fields: [domesticAffiliatedUnivId], references: [id])
+  id                       Int                      @id @default(autoincrement())
+  username                 String                   @unique
+  email                    String?                  @unique
+  emailVerifiedAt          DateTime?
+  password                 String?
+  fcmToken                 String?
+  latitude                 Float?
+  longitude                Float?
+  avatar                   String?
+  created_at               DateTime                 @default(now())
+  updated_at               DateTime                 @updatedAt
+  posts                    Post[]
+  comments                 PostComment[]
+  commentLikes             PostCommentLike[]
+  likes                    PostLike[]
+  products                 Product[]
+  wishes                   Wish[]
+  messages                 Message[]
+  schedules                ScheduleEntry[]
+  universityTodos          UniversityTodo[]
+  interestedUnivs          University[]             @relation("UserUnivInterests")
+  foreignAffiliatedUniv    University?              @relation("UserForeignAffiliatedUniv", fields: [foreignAffiliatedUnivId], references: [id])
+  foreignAffiliatedUnivId  Int?
+  domesticAffiliatedUniv   University?              @relation("UserDomesticAffiliatedUniv", fields: [domesticAffiliatedUnivId], references: [id])
   domesticAffiliatedUnivId Int?
-  chatRoomMembers  ChatRoomMember[]
-  emailVerificationTokens EmailVerificationToken[]
+  chatRoomMembers          ChatRoomMember[]
+  emailVerificationTokens  EmailVerificationToken[]
 }
 
 model EmailVerificationToken {
-  id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         Int       @id @default(autoincrement())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int
-  tokenHash  String   @unique
+  tokenHash  String    @unique
   expiresAt  DateTime
   usedAt     DateTime?
-  created_at DateTime @default(now())
+  created_at DateTime  @default(now())
 
   @@index([userId, expiresAt])
 }
@@ -91,6 +89,8 @@ model PostComment {
   post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId Int
   postId Int
+
+  likes PostCommentLike[]
 }
 
 model PostLike {
@@ -103,6 +103,18 @@ model PostLike {
   postId Int
 
   @@id(name: "id", [userId, postId])
+}
+
+model PostCommentLike {
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   PostComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    Int
+  commentId Int
+
+  @@id(name: "id", [userId, commentId])
 }
 
 model Product {
@@ -233,8 +245,8 @@ model University {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  interestedBy             User[] @relation("UserUnivInterests")
-  foreignAffiliatedUsers   User[] @relation("UserForeignAffiliatedUniv")
-  domesticAffiliatedUsers  User[] @relation("UserDomesticAffiliatedUniv")
-  chatRooms                ChatRoom[]
+  interestedBy            User[]     @relation("UserUnivInterests")
+  foreignAffiliatedUsers  User[]     @relation("UserForeignAffiliatedUniv")
+  domesticAffiliatedUsers User[]     @relation("UserDomesticAffiliatedUniv")
+  chatRooms               ChatRoom[]
 }

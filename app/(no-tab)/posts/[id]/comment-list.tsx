@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import CommentLikeButton from "@/components/comment-like-button";
 import { formatToTimeAgo } from "@/lib/utils";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
@@ -25,6 +26,8 @@ interface CommentItem {
     created_at: string;
     userId: number;
     user: CommentUser;
+    isLiked: boolean;
+    likeCount: number;
 }
 
 interface CommentListProps {
@@ -181,6 +184,14 @@ export default function CommentList({
                                 </div>
                                 <span>{comment.content}</span>
                             </div>
+                        </div>
+                        <div className="shrink-0">
+                            <CommentLikeButton
+                                isLiked={comment.isLiked}
+                                likeCount={comment.likeCount}
+                                postId={postId}
+                                commentId={comment.id}
+                            />
                         </div>
                     </div>
                 );

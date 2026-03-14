@@ -5,7 +5,6 @@ import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import {
     ChatBubbleBottomCenterIcon,
-    EyeIcon,
     HandThumbUpIcon,
 } from "@heroicons/react/24/outline";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
@@ -219,20 +218,26 @@ export default async function Posts({
                                                 {post.user.username}
                                             </span>
                                             {post.postType === "LIFELOG" &&
-                                            post.user.foreignAffiliatedUniv?.name ? (
+                                            post.user.foreignAffiliatedUniv
+                                                ?.name ? (
                                                 <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-1.5 py-0 text-[11px] leading-4 text-blue-700">
                                                     {
-                                                        post.user.foreignAffiliatedUniv
+                                                        post.user
+                                                            .foreignAffiliatedUniv
                                                             .name
                                                     }
                                                 </span>
                                             ) : null}
                                         </div>
-                                        <span className="mt-0.5 text-xs">
-                                            {formatToTimeAgo(
-                                                post.created_at.toString(),
-                                            )}
-                                        </span>
+                                        <div className="mt-0.5 flex items-center gap-2 text-xs">
+                                            <span>
+                                                {formatToTimeAgo(
+                                                    post.created_at.toString(),
+                                                )}
+                                            </span>
+                                            <span>·</span>
+                                            <span>조회 {post.views}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 {firstImage ? (
@@ -253,11 +258,7 @@ export default async function Posts({
                                 <p className="line-clamp-2 leading-relaxed">
                                     {getLifelogPreview(post.content)}
                                 </p>
-                                <div className="flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-1">
-                                        <EyeIcon className="size-4" />
-                                        <span>{post.views}</span>
-                                    </div>
+                                <div className="flex items-center justify-end text-sm">
                                     <div className="flex items-center gap-4 text-myblue *:flex *:items-center *:gap-1">
                                         <span>
                                             <HandThumbUpIcon className="size-4" />
@@ -284,5 +285,3 @@ export default async function Posts({
         </div>
     );
 }
-
-

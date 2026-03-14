@@ -27,13 +27,18 @@ export default function LifelogViewer({ content }: LifelogViewerProps) {
         extensions: [StarterKit, Image, Underline],
         content: parsed || {
             type: "doc",
-            content: [{ type: "paragraph", content: [{ type: "text", text: content }] }],
+            content: [
+                {
+                    type: "paragraph",
+                    content: [{ type: "text", text: content }],
+                },
+            ],
         },
         editable: false,
         immediatelyRender: false,
         editorProps: {
             attributes: {
-                class: "tiptap-viewer prose prose-sm max-w-none",
+                class: "tiptap-viewer prose prose-base max-w-none",
             },
         },
     });

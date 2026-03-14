@@ -6,7 +6,6 @@ import db from "@/lib/db";
 import { parseProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
-import { EyeIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -165,10 +164,12 @@ export default async function Product({
                     <span className="text-sm font-semibold">
                         {product.user.username}
                     </span>
-                    <div className="text-xs">
+                    <div className="flex items-center gap-2 text-xs">
                         <span>
                             {formatToTimeAgo(product.created_at.toString())}
                         </span>
+                        <span>·</span>
+                        <span>조회 {product.views}</span>
                     </div>
                 </div>
             </div>
@@ -201,10 +202,6 @@ export default async function Product({
                 ) : null}
             </div>
             <div className="flex flex-col gap-3 items-start">
-                <div className="flex items-center gap-2 text-mygray text-sm">
-                    <EyeIcon className="size-5" />
-                    <span>{product.views}</span>
-                </div>
                 <div className="flex gap-2">
                     <WishButton
                         isWished={isWished}
@@ -219,7 +216,10 @@ export default async function Product({
                             >
                                 수정
                             </Link>
-                            <DeleteBtn onDelete={deleteProduct} title="상품 삭제" />
+                            <DeleteBtn
+                                onDelete={deleteProduct}
+                                title="상품 삭제"
+                            />
                         </div>
                     ) : null}
                 </div>

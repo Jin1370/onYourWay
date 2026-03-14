@@ -42,7 +42,11 @@ function hashString(seed: string) {
     return Math.abs(hash);
 }
 
-function moveByMeters(origin: LatLng, meters: number, bearingRad: number): LatLng {
+function moveByMeters(
+    origin: LatLng,
+    meters: number,
+    bearingRad: number,
+): LatLng {
     const earthRadius = 6378137;
     const dLat = (meters * Math.cos(bearingRad)) / earthRadius;
     const dLng =
@@ -138,7 +142,7 @@ export default function ProductApproxLocationMap({
             <div className="px-3 py-2 text-xs text-neutral-500">
                 {locationLabel
                     ? `판매자 대략 위치: ${locationLabel}`
-                    : "판매자 대략 위치: 이 원 안 어딘가"}
+                    : "판매자 대략 위치: 원 내부"}
             </div>
         </div>
     );

@@ -1,23 +1,23 @@
 "use client";
 
+import { dislikeComment, likeComment } from "@/app/(no-tab)/posts/[id]/action";
 import { HandThumbUpIcon as SolidHandThumbUpIcon } from "@heroicons/react/24/solid";
 import { HandThumbUpIcon as OutlineHandThumbUpIcon } from "@heroicons/react/24/outline";
 import { startTransition, useOptimistic } from "react";
-import { dislikePost, likePost } from "@/app/(no-tab)/posts/[id]/action";
 
-interface LikeButtonProps {
+interface CommentLikeButtonProps {
     isLiked: boolean;
     likeCount: number;
     postId: number;
+    commentId: number;
 }
 
-export default function LikeButton({
+export default function CommentLikeButton({
     isLiked,
     likeCount,
     postId,
-}: LikeButtonProps) {
-    //첫번째 인자: 기존 데이터
-    //두번째 인자: 데이터 수정 함수 (이전 상태, 핵심 데이터)
+    commentId,
+}: CommentLikeButtonProps) {
     const [state, toggleFn] = useOptimistic(
         { isLiked, likeCount },
         (previousState) => {
@@ -29,28 +29,31 @@ export default function LikeButton({
             };
         },
     );
+
     const onClick = () => {
         const prevLiked = state.isLiked;
         startTransition(async () => {
-            //startTransition: 조금 늦게 처리해도 되니까, 사용자가 클릭하는 동안 화면이 멈추지 않게 해줘
             toggleFn(undefined);
             if (prevLiked) {
-                await dislikePost(postId);
+                await dislikeComment(postId, commentId);
             } else {
-                await likePost(postId);
+                await likeComment(postId, commentId);
             }
         });
     };
+
     return (
         <button
+            type="button"
             onClick={onClick}
-            className={`flex items-center gap-2 text-mygray text-sm border border-neutral-400 rounded-full py-1.5 px-2 transition-colors 
-                            ${state.isLiked ? "bg-myblue text-white border-myblue" : " hover:bg-blue-100"}`}
+            className={`flex items-center gap-1 text-sm rounded-full px-2 py-1 transition-colors ${
+                state.isLiked ? "text-myblue" : "text-mygray hover:text-myblue"
+            }`}
         >
             {state.isLiked ? (
-                <SolidHandThumbUpIcon className="size-5" />
+                <SolidHandThumbUpIcon className="size-3.5" />
             ) : (
-                <OutlineHandThumbUpIcon className="size-5" />
+                <OutlineHandThumbUpIcon className="size-3.5" />
             )}
             <span>{state.likeCount}</span>
         </button>
