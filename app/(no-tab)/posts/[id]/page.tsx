@@ -3,6 +3,7 @@ import DeleteBtn from "@/components/delete-button";
 import Input from "@/components/input";
 import LifelogViewer from "@/components/lifelog-viewer";
 import LikeButton from "@/components/like-button";
+import ViewTracker from "@/components/view-tracker";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
@@ -13,14 +14,9 @@ import { createComment } from "./action";
 import CommentList from "./comment-list";
 
 async function getPost(postId: number) {
-    const post = await db.post.update({
+    const post = await db.post.findUnique({
         where: {
             id: postId,
-        },
-        data: {
-            views: {
-                increment: 1,
-            },
         },
         include: {
             user: {
@@ -136,6 +132,7 @@ export default async function Post({
 
     return (
         <div className="p-5 text-neutral-700 pb-30">
+            <ViewTracker type="post" id={postId} />
             <div className="flex items-center gap-2 mb-2">
                 <Image
                     width={28}

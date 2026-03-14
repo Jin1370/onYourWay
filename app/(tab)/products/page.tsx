@@ -268,12 +268,14 @@ export default async function Products({
                 )}
             </div>
 
-            <Link
-                href="/products/create"
-                className="fixed bottom-20 right-10 size-15 rounded-full bg-myblue text-white shadow-lg flex items-center justify-center transition-colors hover:bg-myblue/90"
-            >
-                <PlusIcon className="size-7 stroke-[2.5]" />
-            </Link>
+            <div className="fixed bottom-20 left-1/2 w-full max-w-screen-sm -translate-x-1/2 px-6 pointer-events-none">
+                <Link
+                    href="/products/create"
+                    className="ml-auto size-15 rounded-full bg-myblue text-white shadow-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100 hover:bg-myblue/90 pointer-events-auto"
+                >
+                    <PlusIcon className="size-7 stroke-[2.5]" />
+                </Link>
+            </div>
         </div>
     );
 }

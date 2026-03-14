@@ -36,6 +36,8 @@ model User {
   posts                    Post[]
   comments                 PostComment[]
   commentLikes             PostCommentLike[]
+  postViews                PostView[]
+  productViews             ProductView[]
   likes                    PostLike[]
   products                 Product[]
   wishes                   Wish[]
@@ -77,6 +79,7 @@ model Post {
 
   comments PostComment[]
   likes    PostLike[]
+  viewsLog PostView[]
 }
 
 model PostComment {
@@ -117,6 +120,19 @@ model PostCommentLike {
   @@id(name: "id", [userId, commentId])
 }
 
+model PostView {
+  id           Int      @id @default(autoincrement())
+  lastViewedAt DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int
+  postId Int
+
+  @@unique([userId, postId])
+  @@index([postId, lastViewedAt])
+}
+
 model Product {
   id            Int      @id @default(autoincrement())
   title         String
@@ -136,6 +152,20 @@ model Product {
   userId    Int
   wishes    Wish[]
   chatRooms ChatRoom[]
+  viewsLog  ProductView[]
+}
+
+model ProductView {
+  id           Int      @id @default(autoincrement())
+  lastViewedAt DateTime @default(now())
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    Int
+  productId Int
+
+  @@unique([userId, productId])
+  @@index([productId, lastViewedAt])
 }
 
 model Wish {

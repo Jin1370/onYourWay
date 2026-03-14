@@ -2,6 +2,7 @@ import DeleteBtn from "@/components/delete-button";
 import ProductApproxLocationMap from "@/components/product-approx-location-map";
 import ProductPhotoCarousel from "@/components/product-photo-carousel";
 import WishButton from "@/components/wish-button";
+import ViewTracker from "@/components/view-tracker";
 import db from "@/lib/db";
 import { parseProductPhotos } from "@/lib/product-photos";
 import getSession from "@/lib/session";
@@ -11,14 +12,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 async function getProduct(productId: number) {
-    const product = await db.product.update({
+    const product = await db.product.findUnique({
         where: {
             id: productId,
-        },
-        data: {
-            views: {
-                increment: 1,
-            },
         },
         include: {
             user: {
@@ -149,6 +145,7 @@ export default async function Product({
 
     return (
         <div className="p-5 text-neutral-700 pb-30">
+            <ViewTracker type="product" id={productId} />
             <div className="flex items-center gap-2 mb-2">
                 <Image
                     width={28}
