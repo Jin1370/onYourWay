@@ -439,7 +439,7 @@ export default function ChatsList({
                 </div>
             ) : null}
             {deleteTargetRoomId ? (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                     <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
                         <h3 className="text-center text-lg font-bold text-neutral-800">
                             목록에서 삭제
@@ -469,7 +469,7 @@ export default function ChatsList({
                 </div>
             ) : null}
             {leaveTargetRoomId ? (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                     <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
                         <h3 className="text-center text-lg font-bold text-neutral-800">
                             채팅방 나가기

@@ -2,6 +2,7 @@
 
 import db from "@/lib/db";
 import { hasLifelogContent } from "@/lib/post-content";
+import { indexPostChunks } from "@/lib/rag";
 import getSession from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -91,6 +92,8 @@ export async function updatePost(
             content: result.data.content,
         },
     });
+
+    await indexPostChunks(post.id, post.title, post.content);
 
     revalidatePath("/posts");
     redirect(`/posts/${post.id}`);

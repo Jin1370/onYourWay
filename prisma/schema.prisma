@@ -80,6 +80,7 @@ model Post {
   comments PostComment[]
   likes    PostLike[]
   viewsLog PostView[]
+  chunks   PostChunk[]
 }
 
 model PostComment {
@@ -118,6 +119,18 @@ model PostCommentLike {
   commentId Int
 
   @@id(name: "id", [userId, commentId])
+}
+
+model PostChunk {
+  id         Int      @id @default(autoincrement())
+  content    String
+  embedding  Json
+  created_at DateTime @default(now())
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int
+
+  @@index([postId])
 }
 
 model PostView {

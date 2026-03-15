@@ -56,7 +56,9 @@ export default function ChatMessagesList({
             return acc;
         }, {}),
     );
-    const myParticipant = participants.find((participant) => participant.id === userId);
+    const myParticipant = participants.find(
+        (participant) => participant.id === userId,
+    );
     const [isMuted, setIsMuted] = useState(Boolean(myParticipant?.is_muted));
 
     const channel = useRef<RealtimeChannel>(null);
@@ -179,7 +181,8 @@ export default function ChatMessagesList({
         );
     };
 
-    const isGroupChat = chatRoomType === "UNIVERSITY" || participants.length > 2;
+    const isGroupChat =
+        chatRoomType === "UNIVERSITY" || participants.length > 2;
     const readCountsByIndex = messages.map((msg) => {
         const messageCreatedAt = new Date(msg.created_at).getTime();
         return participants.filter((participant) => {
@@ -232,9 +235,12 @@ export default function ChatMessagesList({
     };
 
     const leaveChatRoom = async () => {
-        const response = await fetch(`/api/chats/${chatRoomId}/membership/leave`, {
-            method: "DELETE",
-        });
+        const response = await fetch(
+            `/api/chats/${chatRoomId}/membership/leave`,
+            {
+                method: "DELETE",
+            },
+        );
         if (!response.ok) {
             alert("채팅방 나가기에 실패했습니다.");
             return;
@@ -473,7 +479,7 @@ export default function ChatMessagesList({
             ) : null}
 
             {isDeleteModalOpen ? (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                     <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
                         <h3 className="text-center text-lg font-bold text-neutral-800">
                             목록에서 삭제
@@ -504,7 +510,7 @@ export default function ChatMessagesList({
             ) : null}
 
             {isLeaveModalOpen ? (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
                     <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
                         <h3 className="text-center text-lg font-bold text-neutral-800">
                             채팅방 나가기

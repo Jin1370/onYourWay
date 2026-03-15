@@ -81,3 +81,17 @@ export function getLifelogFirstImage(content: string) {
     return firstImage;
 }
 
+export function getLifelogText(content: string) {
+    const doc = parseTiptapContent(content);
+    if (!doc) return content;
+
+    const parts: string[] = [];
+    walkNodes(doc, (node) => {
+        if (typeof node.text === "string") {
+            const text = node.text.trim();
+            if (text) parts.push(text);
+        }
+    });
+
+    return parts.join("\n");
+}
