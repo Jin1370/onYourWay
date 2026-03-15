@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
@@ -51,12 +51,12 @@ export default function EditPostForm({
                     name="title"
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
-                    errors={state?.fieldErrors.title}
+                    errors={state?.fieldErrors?.title}
                 />
                 <LifelogEditor
                     name="content"
                     initialContent={initialContent}
-                    errors={state?.fieldErrors.content}
+                    errors={state?.fieldErrors?.content}
                 />
 
                 {state?.formErrors?.length ? (

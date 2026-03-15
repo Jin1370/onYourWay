@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -21,6 +21,7 @@ function getTitle(pathname: string) {
         return "프로필 > 관심 대학 추가";
     if (pathname.startsWith("/profile/add-affiliated-univ"))
         return "프로필 > 소속 대학 등록";
+    if (pathname.startsWith("/posts/ai")) return "💡AI 질문하기";
     if (pathname.startsWith("/posts")) return "포스트";
     if (pathname.startsWith("/products")) return "중고거래";
     if (pathname.startsWith("/chats")) return "채팅";
@@ -35,20 +36,33 @@ export default function TabPageTitle() {
     const showUnivInterestAddButton = pathname.startsWith(
         "/profile/my-univ-interests",
     );
+    const showAiButton = title === "포스트";
 
     if (!title) return null;
 
     return (
-        <header className="flex items-center gap-3 px-5 pt-5">
-            <h1 className="text-xl font-semibold text-neutral-900">{title}</h1>
-            {showUnivInterestAddButton ? (
+        <header className="flex items-center justify-between gap-3 px-5 pt-5">
+            <div className="flex items-center gap-3">
+                <h1 className="text-xl font-semibold text-neutral-900">
+                    {title}
+                </h1>
+                {showUnivInterestAddButton ? (
+                    <Link
+                        href="/profile/add-univ-interest"
+                        className="size-4 text-neutral-500 border border-neutral-300 rounded-md flex items-center justify-center hover:bg-neutral-100"
+                        aria-label="관심 대학 추가"
+                        title="관심 대학 추가"
+                    >
+                        <PlusIcon className="size-5" />
+                    </Link>
+                ) : null}
+            </div>
+            {showAiButton ? (
                 <Link
-                    href="/profile/add-univ-interest"
-                    className="size-4 text-neutral-500 border border-neutral-300 rounded-md flex items-center justify-center hover:bg-neutral-100"
-                    aria-label="관심 대학 추가"
-                    title="관심 대학 추가"
+                    href="/posts/ai"
+                    className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-2 py-1 textarea-sm font-semibold text-neutral-700 hover:bg-neutral-50"
                 >
-                    <PlusIcon className="size-5" />
+                    💡AI 질문하기
                 </Link>
             ) : null}
         </header>

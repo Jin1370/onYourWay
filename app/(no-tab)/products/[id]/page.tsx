@@ -1,4 +1,4 @@
-import DeleteBtn from "@/components/delete-button";
+﻿import DeleteBtn from "@/components/delete-button";
 import ProductApproxLocationMap from "@/components/product-approx-location-map";
 import ProductPhotoCarousel from "@/components/product-photo-carousel";
 import WishButton from "@/components/wish-button";
@@ -12,7 +12,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 async function getProduct(productId: number) {
-    const product = await db.product.findUnique({
+    const product = await db.product.findUniqueOrThrow({
         where: {
             id: productId,
         },
@@ -114,8 +114,12 @@ export default async function Product({
     const productId = Number(strId);
     if (isNaN(productId)) return notFound();
 
-    const product = await getProduct(productId);
-    if (!product) return notFound();
+    let product: Awaited<ReturnType<typeof getProduct>>;
+    try {
+        product = await getProduct(productId);
+    } catch {
+        return notFound();
+    }
 
     const productPhotos = parseProductPhotos(product.photo);
     const displayPhotos =
@@ -175,9 +179,7 @@ export default async function Product({
                 title={product.title}
             />
             <h2 className="text-lg font-semibold my-1">{product.title}</h2>
-            <p className="mb-10 whitespace-pre-line">
-                {product.description}
-            </p>
+            <p className="mb-10 whitespace-pre-line">{product.description}</p>
             <div className="mb-6 flex flex-col gap-2">
                 <div className="flex gap-2 flex-wrap">
                     {product.isMeetup ? (

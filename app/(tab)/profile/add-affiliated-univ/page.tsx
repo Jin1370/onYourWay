@@ -1,10 +1,11 @@
 ﻿"use client";
 
+import { Suspense } from "react";
 import UniversitySearchPicker from "@/components/university-search-picker";
 import { useSearchParams } from "next/navigation";
 import UniversityModal from "./university-modal";
 
-export default function AddForeignAffiliatedUniv() {
+function AddAffiliatedUnivContent() {
     const searchParams = useSearchParams();
     const returnTo = searchParams.get("returnTo") ?? "/profile";
     const typeParam = searchParams.get("type");
@@ -25,5 +26,13 @@ export default function AddForeignAffiliatedUniv() {
                 />
             )}
         />
+    );
+}
+
+export default function AddForeignAffiliatedUniv() {
+    return (
+        <Suspense fallback={null}>
+            <AddAffiliatedUnivContent />
+        </Suspense>
     );
 }

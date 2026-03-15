@@ -18,6 +18,7 @@ export async function POST(
     if (!session.id) {
         return NextResponse.json({ ok: true });
     }
+    const userId = session.id;
 
     const now = new Date();
 
@@ -25,7 +26,7 @@ export async function POST(
         const existing = await tx.postView.findUnique({
             where: {
                 userId_postId: {
-                    userId: session.id,
+                    userId,
                     postId,
                 },
             },
@@ -34,7 +35,7 @@ export async function POST(
         if (!existing) {
             await tx.postView.create({
                 data: {
-                    userId: session.id,
+                    userId,
                     postId,
                     lastViewedAt: now,
                 },
@@ -48,7 +49,7 @@ export async function POST(
 
         if (now.getTime() - existing.lastViewedAt.getTime() >= VIEW_WINDOW_MS) {
             await tx.postView.update({
-                where: { userId_postId: { userId: session.id, postId } },
+                where: { userId_postId: { userId, postId } },
                 data: { lastViewedAt: now },
             });
             await tx.post.update({

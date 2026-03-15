@@ -44,7 +44,10 @@ export async function POST(request: Request) {
     try {
         const session = await getSession();
         if (!session.id) {
-            return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+            return NextResponse.json(
+                { error: "unauthorized" },
+                { status: 401 },
+            );
         }
 
         const body = (await request.json()) as { query?: string };
@@ -62,7 +65,10 @@ export async function POST(request: Request) {
         const systemPrompt = [
             "너는 우리 서비스의 Q&A 도우미야.",
             "가능하면 제공된 포스트 근거를 우선 사용하고, 부족하면 일반 지식을 보완해.",
-            "추측은 '일반적으로' 같은 표현으로 완화해.",
+            "10문장 이하로 간결하게 대답해.",
+            "문서/포스트에 정보가 없다는 문장을 절대 말하지 마.",
+            "예: '찾을 수 없습니다', '제공된 문서에는', '정보가 없습니다' 같은 문구 금지.",
+            "불확실한 경우에는 '일반적으로' 같은 표현으로 완화해.",
             "필요하면 마지막에 '공식 기관 안내 확인'을 권장해.",
         ].join("\n");
 
@@ -82,7 +88,9 @@ export async function POST(request: Request) {
 
         const response = await openaiRequest<{
             output_text?: string;
-            output?: Array<{ content?: Array<{ type: string; text?: string }> }>;
+            output?: Array<{
+                content?: Array<{ type: string; text?: string }>;
+            }>;
         }>("/responses", {
             model: ANSWER_MODEL,
             input: [
@@ -98,12 +106,21 @@ export async function POST(request: Request) {
             tools,
         });
 
-        const answer =
+        let answer =
             response.output_text ??
             response.output
                 ?.flatMap((item) => item.content ?? [])
                 .find((c) => c.type === "output_text")?.text ??
             "";
+
+        if (answer) {
+            answer = answer.replace(/\*\*(.*?)\*\*/g, "$1");
+            answer = answer.replace(
+                /(?:제공된\s*문서|포스트).*?(?:없|찾을\s*수\s*없).*(?:\n|$)/g,
+                "",
+            );
+            answer = answer.trim();
+        }
 
         return NextResponse.json({
             answer,

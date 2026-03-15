@@ -1,4 +1,4 @@
-import ListSearchForm from "@/components/list-search-form";
+﻿import ListSearchForm from "@/components/list-search-form";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import ChatNotificationConsent from "@/components/chat-notification-consent";
@@ -101,11 +101,9 @@ export default async function ChatRooms({
     if (!session.id) {
         redirect("/login");
     }
-    const resolvedSearchParams =
-        searchParams &&
-        typeof (searchParams as Promise<unknown>).then === "function"
-            ? await searchParams
-            : searchParams;
+    const resolvedSearchParams = searchParams
+        ? await searchParams
+        : undefined;
     const q = resolvedSearchParams?.q?.trim() ?? "";
     const chatRooms = await getChatRooms(session.id);
     return (

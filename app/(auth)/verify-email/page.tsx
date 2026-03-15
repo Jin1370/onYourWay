@@ -1,11 +1,12 @@
-"use client";
+﻿"use client";
 
+import { Suspense, useEffect, useState } from "react";
 import Button from "@/components/button";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 import { resendVerificationEmail } from "./action";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
     const [state, formAction] = useActionState(resendVerificationEmail, null);
     const searchParams = useSearchParams();
     const email = searchParams.get("email") ?? "";
@@ -60,5 +61,13 @@ export default function VerifyEmailPage() {
                 ) : null}
             </div>
         </div>
+    );
+}
+
+export default function VerifyEmailPage() {
+    return (
+        <Suspense fallback={null}>
+            <VerifyEmailContent />
+        </Suspense>
     );
 }
