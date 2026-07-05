@@ -45,3 +45,10 @@ next-env.d.ts
 *.db
 *.db-journal
 /lib/generated
+
+# uploaded files (로컬 디스크 저장 — 새 업로드는 추적하지 않음.
+# 이미 커밋된 기존 파일은 `git rm -r --cached public/uploads`로 별도 제거 필요)
+/public/uploads
+
+# internal docs (커밋하지 않는 내부 문서)
+/docs/pre-launch-checklist.md
