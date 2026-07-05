@@ -3,7 +3,7 @@
 import { dislikeComment, likeComment } from "@/app/(no-tab)/posts/[id]/action";
 import { HandThumbUpIcon as SolidHandThumbUpIcon } from "@heroicons/react/24/solid";
 import { HandThumbUpIcon as OutlineHandThumbUpIcon } from "@heroicons/react/24/outline";
-import { startTransition, useOptimistic } from "react";
+import { startTransition, useState } from "react";
 
 interface CommentLikeButtonProps {
     isLiked: boolean;
@@ -18,26 +18,25 @@ export default function CommentLikeButton({
     postId,
     commentId,
 }: CommentLikeButtonProps) {
-    const [state, toggleFn] = useOptimistic(
-        { isLiked, likeCount },
-        (previousState) => {
-            return {
-                isLiked: !previousState.isLiked,
-                likeCount: previousState.isLiked
-                    ? previousState.likeCount - 1
-                    : previousState.likeCount + 1,
-            };
-        },
-    );
+    // 전체 새로고침 없이 확정 상태를 로컬에서 관리(낙관적 업데이트 + 실패 시 롤백).
+    const [state, setState] = useState({ isLiked, likeCount });
 
     const onClick = () => {
-        const prevLiked = state.isLiked;
+        const prev = state;
+        const next = {
+            isLiked: !prev.isLiked,
+            likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
+        };
+        setState(next);
         startTransition(async () => {
-            toggleFn(undefined);
-            if (prevLiked) {
-                await dislikeComment(postId, commentId);
-            } else {
-                await likeComment(postId, commentId);
+            try {
+                if (prev.isLiked) {
+                    await dislikeComment(postId, commentId);
+                } else {
+                    await likeComment(postId, commentId);
+                }
+            } catch {
+                setState(prev); // 실패 시 롤백
             }
         });
     };

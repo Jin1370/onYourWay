@@ -139,8 +139,11 @@ export async function POST(request: Request) {
                   }),
         });
     } catch (error) {
-        const message =
-            error instanceof Error ? error.message : "unknown error";
-        return NextResponse.json({ error: message }, { status: 500 });
+        // 원본 에러(OpenAI 응답 본문 등)를 클라이언트에 노출하지 않는다. 서버 로그로만 남긴다.
+        console.error("QA request failed:", error);
+        return NextResponse.json(
+            { error: "답변 생성에 실패했습니다. 잠시 후 다시 시도해주세요." },
+            { status: 500 },
+        );
     }
 }

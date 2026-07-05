@@ -193,14 +193,11 @@ export async function updateProduct(
         redirect(`/products/${product.id}`);
     } catch (error) {
         if (isRedirectError(error)) throw error;
+        // 원본 에러 메시지(Prisma 등)를 사용자에게 노출하지 않는다. 로그로만 남긴다.
         console.error("updateProduct failed:", error);
-        const message =
-            error instanceof Error
-                ? `수정 중 오류: ${error.message}`
-                : "수정 중 오류가 발생했습니다. 다시 시도해주세요.";
         return {
             fieldErrors: buildDefaultFieldErrors(),
-            formErrors: [message],
+            formErrors: ["수정 중 오류가 발생했습니다. 다시 시도해주세요."],
             values,
         };
     }

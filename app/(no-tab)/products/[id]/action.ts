@@ -9,12 +9,17 @@ export async function wishProduct(productId: number) {
     if (!session.id) {
         return;
     }
-    await db.wish.create({
-        data: {
-            productId,
-            userId: session.id,
-        },
-    });
+    // 중복 클릭(이미 찜한 상태)에도 500이 나지 않도록 멱등 처리.
+    try {
+        await db.wish.create({
+            data: {
+                productId,
+                userId: session.id,
+            },
+        });
+    } catch {
+        // 이미 찜한 상태 — 무시(멱등)
+    }
     revalidatePath(`/products/${productId}`);
 }
 export async function unWishProduct(productId: number) {
@@ -22,12 +27,11 @@ export async function unWishProduct(productId: number) {
     if (!session.id) {
         return;
     }
-    await db.wish.delete({
+    // deleteMany는 대상이 없어도 에러를 던지지 않아 중복 클릭에 안전하다.
+    await db.wish.deleteMany({
         where: {
-            id: {
-                productId,
-                userId: session.id,
-            },
+            productId,
+            userId: session.id,
         },
     });
     revalidatePath(`/products/${productId}`);

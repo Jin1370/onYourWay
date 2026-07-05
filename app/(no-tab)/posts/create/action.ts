@@ -87,7 +87,13 @@ export async function createPost(_prevState: unknown, formData: FormData) {
         },
     });
 
-    await indexPostChunks(post.id, post.title, post.content);
+    // 임베딩 인덱싱(외부 OpenAI 호출) 실패가 글 작성 자체를 막지 않도록 격리한다.
+    // 실패해도 글은 이미 저장됐고, 검색/AI 품질에만 영향을 준다.
+    try {
+        await indexPostChunks(post.id, post.title, post.content);
+    } catch (error) {
+        console.error("Failed to index post chunks:", error);
+    }
 
     revalidatePath("/posts");
     redirect(`/posts/${post.id}`);

@@ -163,14 +163,11 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
         productId = product.id;
     } catch (error) {
         if (isRedirectError(error)) throw error;
+        // 원본 에러 메시지(Prisma 등)를 사용자에게 노출하지 않는다. 로그로만 남긴다.
         console.error("createProduct failed:", error);
-        const message =
-            error instanceof Error
-                ? `등록 중 오류: ${error.message}`
-                : "등록 중 오류가 발생했습니다. 다시 시도해주세요.";
         return {
             fieldErrors: buildDefaultFieldErrors(),
-            formErrors: [message],
+            formErrors: ["등록 중 오류가 발생했습니다. 다시 시도해주세요."],
             values,
         };
     }

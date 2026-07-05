@@ -2,7 +2,7 @@
 
 import { HandThumbUpIcon as SolidHandThumbUpIcon } from "@heroicons/react/24/solid";
 import { HandThumbUpIcon as OutlineHandThumbUpIcon } from "@heroicons/react/24/outline";
-import { startTransition, useOptimistic } from "react";
+import { startTransition, useState } from "react";
 import { dislikePost, likePost } from "@/app/(no-tab)/posts/[id]/action";
 
 interface LikeButtonProps {
@@ -16,28 +16,25 @@ export default function LikeButton({
     likeCount,
     postId,
 }: LikeButtonProps) {
-    //첫번째 인자: 기존 데이터
-    //두번째 인자: 데이터 수정 함수 (이전 상태, 핵심 데이터)
-    const [state, toggleFn] = useOptimistic(
-        { isLiked, likeCount },
-        (previousState) => {
-            return {
-                isLiked: !previousState.isLiked,
-                likeCount: previousState.isLiked
-                    ? previousState.likeCount - 1
-                    : previousState.likeCount + 1,
-            };
-        },
-    );
+    // 서버를 전체 재검증(새로고침)하지 않으므로, 확정 상태를 로컬에서 관리한다.
+    // 클릭 즉시 UI를 바꾸고(낙관적), 서버 요청이 실패하면 되돌린다.
+    const [state, setState] = useState({ isLiked, likeCount });
     const onClick = () => {
-        const prevLiked = state.isLiked;
+        const prev = state;
+        const next = {
+            isLiked: !prev.isLiked,
+            likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
+        };
+        setState(next);
         startTransition(async () => {
-            //startTransition: 조금 늦게 처리해도 되니까, 사용자가 클릭하는 동안 화면이 멈추지 않게 해줘
-            toggleFn(undefined);
-            if (prevLiked) {
-                await dislikePost(postId);
-            } else {
-                await likePost(postId);
+            try {
+                if (prev.isLiked) {
+                    await dislikePost(postId);
+                } else {
+                    await likePost(postId);
+                }
+            } catch {
+                setState(prev); // 실패 시 롤백
             }
         });
     };

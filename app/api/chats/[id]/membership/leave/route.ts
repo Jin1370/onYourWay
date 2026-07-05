@@ -12,25 +12,19 @@ export async function DELETE(
     }
 
     const { id: chatRoomId } = await params;
-    const member = await db.chatRoomMember.findFirst({
+
+    // deleteMany는 대상이 없어도 에러를 던지지 않아 동시 요청(같은 유저의 두 탭 등)에 안전하다.
+    // 삭제된 행 수가 0이면 애초에 멤버가 아니었던 것 → 404.
+    const { count } = await db.chatRoomMember.deleteMany({
         where: {
             chatRoomId,
             userId: session.id,
         },
-        select: {
-            id: true,
-        },
     });
 
-    if (!member) {
+    if (count === 0) {
         return NextResponse.json({ error: "Not Found" }, { status: 404 });
     }
-
-    await db.chatRoomMember.delete({
-        where: {
-            id: member.id,
-        },
-    });
 
     const remainingMembers = await db.chatRoomMember.count({
         where: {
@@ -39,7 +33,8 @@ export async function DELETE(
     });
 
     if (remainingMembers === 0) {
-        await db.chatRoom.delete({
+        // 마지막 멤버가 나가면 방 삭제. 이미 삭제됐어도 에러 안 나도록 deleteMany 사용.
+        await db.chatRoom.deleteMany({
             where: {
                 id: chatRoomId,
             },

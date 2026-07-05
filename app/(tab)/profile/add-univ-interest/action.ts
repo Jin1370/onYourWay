@@ -55,7 +55,8 @@ export async function saveUnivInterest(univId: number) {
                 chatRoomId: chatRoom.id,
             },
         });
-    } catch {
+    } catch (error) {
+        console.error("Failed to add university interest:", error);
         throw new Error("관심 대학을 추가하는 데 실패했습니다.");
     }
     redirect("/profile");

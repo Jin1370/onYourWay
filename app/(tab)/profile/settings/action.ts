@@ -62,26 +62,36 @@ export async function updateProfile(formData: FormData) {
             redirect("/profile/settings?status=invalid");
         }
 
-        await fs.mkdir("./public/uploads/profiles", { recursive: true });
         const ext = extMap[avatarFile.type] ?? ".jpg";
         const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
         const photoData = await avatarFile.arrayBuffer();
-        await fs.writeFile(
-            `./public/uploads/profiles/${safeName}`,
-            Buffer.from(photoData),
-        );
+        try {
+            await fs.mkdir("./public/uploads/profiles", { recursive: true });
+            await fs.writeFile(
+                `./public/uploads/profiles/${safeName}`,
+                Buffer.from(photoData),
+            );
+        } catch {
+            // 디스크 쓰기 실패 시 프로필 저장을 중단하고 오류 안내.
+            redirect("/profile/settings?status=error");
+        }
         uploadedAvatarUrl = `/uploads/profiles/${safeName}`;
     }
 
-    await db.user.update({
-        where: { id: session.id },
-        data: {
-            username,
-            ...(uploadedAvatarUrl !== undefined
-                ? { avatar: uploadedAvatarUrl }
-                : {}),
-        },
-    });
+    try {
+        await db.user.update({
+            where: { id: session.id },
+            data: {
+                username,
+                ...(uploadedAvatarUrl !== undefined
+                    ? { avatar: uploadedAvatarUrl }
+                    : {}),
+            },
+        });
+    } catch {
+        // 검사 이후 동시 저장으로 닉네임 유니크 충돌(P2002) 등이 날 수 있음.
+        redirect("/profile/settings?status=error");
+    }
 
     redirect("/profile/settings?status=saved");
 }
@@ -100,25 +110,30 @@ export async function deleteAccount() {
 
     const userId = session.id;
 
-    await db.$transaction(async (tx) => {
-        await tx.message.deleteMany({ where: { userId } });
-        await tx.chatRoomMember.deleteMany({ where: { userId } });
-        await tx.user.update({
-            where: { id: userId },
-            data: {
-                interestedUnivs: {
-                    set: [],
+    try {
+        await db.$transaction(async (tx) => {
+            await tx.message.deleteMany({ where: { userId } });
+            await tx.chatRoomMember.deleteMany({ where: { userId } });
+            await tx.user.update({
+                where: { id: userId },
+                data: {
+                    interestedUnivs: {
+                        set: [],
+                    },
+                    foreignAffiliatedUniv: {
+                        disconnect: true,
+                    },
+                    domesticAffiliatedUniv: {
+                        disconnect: true,
+                    },
                 },
-                foreignAffiliatedUniv: {
-                    disconnect: true,
-                },
-                domesticAffiliatedUniv: {
-                    disconnect: true,
-                },
-            },
+            });
+            await tx.user.delete({ where: { id: userId } });
         });
-        await tx.user.delete({ where: { id: userId } });
-    });
+    } catch {
+        // 탈퇴 트랜잭션 실패 시(연관 데이터 제약 등) 세션은 유지한 채 오류 안내.
+        redirect("/profile/settings?status=error");
+    }
 
     await session.destroy();
     redirect("/");

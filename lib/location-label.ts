@@ -35,7 +35,11 @@ export async function getApproxLocationLabel(
 
     try {
         const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&language=ko&key=${apiKey}`;
-        const response = await fetch(url, { cache: "no-store" });
+        // 좌표 → 지역명(시/구 단위)은 사실상 불변이므로 30일 캐싱.
+        // Google Geocoding은 유료 호출이라, 같은 좌표에 대한 반복 호출을 캐시로 제거.
+        const response = await fetch(url, {
+            next: { revalidate: 60 * 60 * 24 * 30 },
+        });
         if (!response.ok) return null;
 
         const data = (await response.json()) as GeocodeResponse;

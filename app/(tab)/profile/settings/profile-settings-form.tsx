@@ -130,6 +130,11 @@ export default function ProfileSettingsForm({
                     입력값을 확인해주세요.
                 </p>
             ) : null}
+            {status === "error" ? (
+                <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                </p>
+            ) : null}
 
             <form
                 action={updateProfile}

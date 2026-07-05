@@ -24,7 +24,10 @@ async function fetchFromUpstream(
                 `${endpoint}?name=${encodeURIComponent(q)}`,
                 {
                     signal: controller.signal,
-                    cache: "no-store",
+                    // 대학 목록은 거의 바뀌지 않으므로 동일 검색어 결과를 24시간 캐싱.
+                    // 같은 질의(예: "Oxford")를 여러 사용자가 쳐도 외부 API를 한 번만 호출 → 지연·비용·남용 감소.
+                    // 타임아웃/네트워크 예외는 throw 되어 캐시되지 않으므로 다음 요청에서 다시 시도됨.
+                    next: { revalidate: 60 * 60 * 24 },
                 },
             );
 

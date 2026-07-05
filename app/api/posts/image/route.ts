@@ -8,7 +8,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+        formData = await request.formData();
+    } catch {
+        return NextResponse.json(
+            { error: "Invalid request" },
+            { status: 400 },
+        );
+    }
     const file = formData.get("image");
     if (!(file instanceof File) || file.size === 0) {
         return NextResponse.json({ error: "Invalid image" }, { status: 400 });
@@ -32,7 +40,6 @@ export async function POST(request: Request) {
         );
     }
 
-    await fs.mkdir("./public/uploads/posts", { recursive: true });
     const extMap: Record<string, string> = {
         "image/jpeg": ".jpg",
         "image/png": ".png",
@@ -42,7 +49,16 @@ export async function POST(request: Request) {
     const extension = extMap[file.type] ?? ".jpg";
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}${extension}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(`./public/uploads/posts/${fileName}`, buffer);
+    try {
+        await fs.mkdir("./public/uploads/posts", { recursive: true });
+        await fs.writeFile(`./public/uploads/posts/${fileName}`, buffer);
+    } catch (error) {
+        console.error("Failed to save post image:", error);
+        return NextResponse.json(
+            { error: "Failed to save image" },
+            { status: 500 },
+        );
+    }
 
     return NextResponse.json({ url: `/uploads/posts/${fileName}` });
 }

@@ -90,18 +90,28 @@ export async function createAccount(_prevState: unknown, formData: FormData) {
     }
 
     const hashedPassword = await bcrypt.hash(result.data.password, 12);
-    const user = await db.user.create({
-        data: {
-            username: result.data.username,
-            email: result.data.email,
-            password: hashedPassword,
-            avatar: "https://blocks.astratic.com/img/user-img-small.png",
-        },
-        select: {
-            id: true,
-            email: true,
-        },
-    });
+    let user: { id: number; email: string | null };
+    try {
+        user = await db.user.create({
+            data: {
+                username: result.data.username,
+                email: result.data.email,
+                password: hashedPassword,
+                avatar: "https://blocks.astratic.com/img/user-img-small.png",
+            },
+            select: {
+                id: true,
+                email: true,
+            },
+        });
+    } catch {
+        // superRefine 통과 후 동시 가입으로 username/email 유니크 충돌(P2002)이 날 수 있음.
+        return {
+            formErrors: ["가입 중 오류가 발생했습니다. 다시 시도해주세요."],
+            fieldErrors: {},
+            values,
+        };
+    }
 
     const sent = await sendEmailVerificationForUser(user.id, user.email ?? "");
 

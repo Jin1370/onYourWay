@@ -93,7 +93,12 @@ export async function updatePost(
         },
     });
 
-    await indexPostChunks(post.id, post.title, post.content);
+    // 임베딩 인덱싱 실패가 수정 저장 자체를 막지 않도록 격리한다.
+    try {
+        await indexPostChunks(post.id, post.title, post.content);
+    } catch (error) {
+        console.error("Failed to index post chunks:", error);
+    }
 
     revalidatePath("/posts");
     redirect(`/posts/${post.id}`);

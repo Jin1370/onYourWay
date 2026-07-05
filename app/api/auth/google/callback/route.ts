@@ -84,6 +84,7 @@ export async function GET(request: Request) {
 
     const redirectUri = `${getBaseUrl(request)}/api/auth/google/callback`;
 
+    try {
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: {
@@ -168,4 +169,11 @@ export async function GET(request: Request) {
 
     await logIn(userId);
     return NextResponse.redirect(new URL(nextPath, request.url));
+    } catch (error) {
+        // 토큰 교환/프로필 파싱/DB 쓰기 중 예기치 못한 오류가 나도 500 대신 로그인으로.
+        console.error("Google OAuth callback failed:", error);
+        return NextResponse.redirect(
+            new URL("/login?social=google_failed", request.url),
+        );
+    }
 }

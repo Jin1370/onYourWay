@@ -22,7 +22,8 @@ export async function POST(
 
     const now = new Date();
 
-    await db.$transaction(async (tx) => {
+    try {
+        await db.$transaction(async (tx) => {
         const existing = await tx.productView.findUnique({
             where: {
                 userId_productId: {
@@ -57,7 +58,11 @@ export async function POST(
                 data: { views: { increment: 1 } },
             });
         }
-    });
+        });
+    } catch {
+        // 조회수 집계는 best-effort. 동시 첫 조회 충돌(P2002)이나
+        // 삭제된 상품(P2025) 등은 무시하고 정상 응답한다.
+    }
 
     return NextResponse.json({ ok: true });
 }

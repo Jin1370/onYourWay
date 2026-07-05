@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 type ViewType = "post" | "product";
@@ -11,7 +10,6 @@ interface ViewTrackerProps {
 }
 
 export default function ViewTracker({ type, id }: ViewTrackerProps) {
-    const router = useRouter();
     const sentRef = useRef(false);
 
     useEffect(() => {
@@ -20,14 +18,11 @@ export default function ViewTracker({ type, id }: ViewTrackerProps) {
         if (sentRef.current) return;
         sentRef.current = true;
 
-        void fetch(`/api/${type}s/${id}/view`, {
-            method: "POST",
-        }).then((response) => {
-            if (response.ok) {
-                router.refresh();
-            }
-        });
-    }, [id, router, type]);
+        // 조회수는 서버에 기록만 하고 페이지를 새로고침하지 않는다.
+        // (router.refresh()를 호출하면 게시글/상품을 열 때마다 전체 페이지가 다시 로드됨.
+        //  본인의 방금 조회분은 다음 진입 시 자연스럽게 반영됨.)
+        void fetch(`/api/${type}s/${id}/view`, { method: "POST" });
+    }, [id, type]);
 
     return null;
 }
